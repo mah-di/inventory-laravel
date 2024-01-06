@@ -25,6 +25,8 @@ Route::post('/request-otp', [UserController::class, 'sendOTP'])->name('send.otp'
 Route::post('/verify-otp', [UserController::class, 'verifyOTP'])->name('verify.otp');
 
 Route::middleware('auth.jwt')->group(function () {
+    Route::post('/verify-email', [UserController::class, 'verifyEmail'])->name('verify.email');
+    Route::get('/resend-email-verification-code', [UserController::class, 'resendEmailVerificationOTP'])->name('resend.emailVerification');
     Route::patch('/reset-password', [UserController::class, 'resetPassword'])->name('password.reset');
     Route::patch('/change-password', [UserController::class, 'changePassword'])->name('password.change');
     Route::patch('/user', [UserController::class, 'update'])->name('update.user');

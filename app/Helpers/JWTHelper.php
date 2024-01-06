@@ -8,7 +8,7 @@ use Firebase\JWT\Key;
 class JWTHelper
 {
 
-    public static function generateToken(string $email, int $userID, string $type = 'auth.token'): string
+    public static function generateToken(string $email, int $userID, ?string $verifiedAt = null, string $type = 'auth.token'): string
     {
         $key = env('JWT_SECRET');
 
@@ -20,6 +20,7 @@ class JWTHelper
             'exp' => $expTime,
             'email' => $email,
             'userID' => $userID,
+            'verifiedAt' => $verifiedAt,
             'type' => $type
         ];
 

@@ -93,15 +93,20 @@
             })
 
         if (res.data['status'] === 'success') {
-            window.location.href = "{{ route('dashboard.view') }}"
+            successToast(res.data['message'])
+
+            setTimeout(() => {
+                window.location.href = "{{ route('dashboard.view') }}"
+            }, 2000);
         } else {
+            hideLoader()
+
             errorToast(res.data['message'])
 
             document.querySelector('#password').value = ""
             document.querySelector('#cpassword').value = ""
         }
 
-        hideLoader()
     }
 
 </script>

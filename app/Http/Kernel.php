@@ -66,6 +66,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
 
         'auth.jwt' => \App\Http\Middleware\TokenAuthenticate::class,
+        'verified.email' => \App\Http\Middleware\VerifiedEmail::class,
         'guest' => \App\Http\Middleware\RedirectAuthenticatedUser::class,
     ];
 }

@@ -25,19 +25,24 @@ class UserController extends Controller
                 'password' => ['required', 'string', 'min:8'],
             ]);
 
+            $otp = rand(1000, 9999);
+
             $user = User::create([
                 'firstName' => $validData['firstName'],
                 'lastName' => $validData['lastName'],
                 'email' => $validData['email'],
                 'contact' => $validData['contact'],
                 'password' => $validData['password'],
+                'otp' => $otp,
             ]);
+
+            Mail::to($user->email)->send(new OTPMail($otp));
 
             $token = JWTHelper::generateToken($user->email, $user->id);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Successfully registered user.',
+                'message' => 'Registration Successful. 4 Digit OTP Code Has Been Sent To Your Email.',
                 'token' => $token
             ], 200)
             ->cookie('token', $token, 60*24*180);
@@ -51,6 +56,77 @@ class UserController extends Controller
             ], 200);
 
         }
+    }
+
+    public function verifyEmail(Request $request)
+    {
+        try {
+            $request->validate([
+                'otp' => ['required', 'min:4', 'max:4']
+            ]);
+
+            $id = $request->header('id');
+            $email = $request->header('email');
+            $verifiedAt = now();
+
+            $result = User::where([
+                    'id' => $id,
+                    'email' => $email,
+                    'otp' => $request->input('otp'),
+                ])
+                ->update([
+                    'otp' => 0,
+                    'verified_at' => $verifiedAt,
+                ]);
+
+            if (!$result) throw new Exception("Invalid OTP Code");
+
+            $token = JWTHelper::generateToken($email, $id, $verifiedAt);
+
+            return response()->json([
+                    'status' => 'success',
+                    'message' => 'Email Verified.',
+                    'token' => $token
+                ], 200)
+                ->cookie('token', $token, 60*24*180);
+
+        } catch (Exception $exception) {
+
+            return response()->json([
+                'status' => 'fail',
+                'message' => $exception->getMessage()
+            ], 200);
+
+        }
+    }
+
+    public function resendEmailVerificationOTP(Request $request)
+    {
+        try {
+            $email = $request->header('email');
+            $otp = rand(1000, 9999);
+
+            User::where('email', '=', $email)
+                ->update([
+                    'otp' => $otp
+                ]);
+
+            Mail::to($email)->send(new OTPMail($otp));
+
+            return response()->json([
+                'status' => 'success',
+                'message' => '4 Digit Code Has Been Sent To Your Email.',
+            ], 200);
+
+        } catch (Exception $exception) {
+
+            return response()->json([
+                'status' => 'fail',
+                'message' => $exception->getMessage()
+            ], 200);
+
+        }
+
     }
 
     public function login(Request $request)
@@ -71,7 +147,7 @@ class UserController extends Controller
                 ], 200);
             }
 
-            $token = JWTHelper::generateToken($user->email, $user->id);
+            $token = JWTHelper::generateToken($user->email, $user->id, $user->verified_at);
 
             return response()->json([
                 'status' => 'success',
@@ -137,9 +213,10 @@ class UserController extends Controller
             if(!$user) throw new Exception("Invalid OTP Code.");
 
             $user->otp = 0;
+            $user->verified_at = $user->verified_at ?? now();
             $user->save();
 
-            $token = JWTHelper::generateToken($user->email, $user->id, 'password.reset.token');
+            $token = JWTHelper::generateToken($user->email, $user->id, $user->verified_at, 'password.reset.token');
 
             return response()->json([
                     'status' => 'success',

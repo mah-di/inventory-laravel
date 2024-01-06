@@ -31,6 +31,7 @@ class TokenAuthenticate
 
             $request->headers->set('id', $payload->userID);
             $request->headers->set('email', $payload->email);
+            $request->headers->set('verifiedAt', $payload->verifiedAt);
 
             return $next($request);
 

@@ -23,7 +23,9 @@ Route::middleware('guest')->group(function () {
     Route::view('/verify-otp', 'pages.auth.verify-otp-page')->name('verify.otp.view');
 });
 
-Route::middleware('auth.jwt')->group(function () {
+Route::view('/verify-email', 'pages.auth.verify-email-page')->name('verify.email.view')->middleware('auth.jwt');
+
+Route::middleware(['auth.jwt', 'verified.email'])->group(function () {
     Route::view('/reset-password', 'pages.auth.reset-pass-page')->name('password.reset.view');
     Route::view('/change-password', 'pages.auth.change-pass-page')->name('password.change.view');
     Route::view('/dashboard', 'pages.dashboard.dashboard-page')->name('dashboard.view');

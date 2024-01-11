@@ -3,12 +3,9 @@
 namespace App\Http\Middleware;
 
 use App\Helpers\JWTHelper;
-use App\Models\User;
 use Closure;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
 use Symfony\Component\HttpFoundation\Response;
 
 class TokenAuthenticate
@@ -36,14 +33,10 @@ class TokenAuthenticate
             return $next($request);
 
         } catch (Exception $exception) {
-            if ($request->header('token'))
-
-                return response()->json([
-                    'status' => 'fail',
-                    'message' => $exception->getMessage()
-                ], 401);
-
-            return Redirect::route('login.view');
+            return response()->json([
+                'status' => 'unauthorized',
+                'message' => $exception->getMessage()
+            ], 401);
         }
     }
 }

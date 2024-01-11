@@ -68,5 +68,6 @@ class Kernel extends HttpKernel
         'auth.jwt' => \App\Http\Middleware\TokenAuthenticate::class,
         'verified.email' => \App\Http\Middleware\VerifiedEmail::class,
         'guest' => \App\Http\Middleware\RedirectAuthenticatedUser::class,
+        'web.redirect' => \App\Http\Middleware\ManageWebRedirect::class,
     ];
 }

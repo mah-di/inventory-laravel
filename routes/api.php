@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -31,4 +32,12 @@ Route::middleware('auth.jwt')->group(function () {
     Route::patch('/change-password', [UserController::class, 'changePassword'])->name('password.change');
     Route::patch('/user', [UserController::class, 'update'])->name('update.user');
     Route::get('/user-details', [UserController::class, 'getUser'])->name('user.details');
+
+    Route::controller(CategoryController::class)->prefix('/category')->group(function () {
+        Route::get('', 'all')->name('category.all');
+        Route::get('/{id}', 'find')->name('category.single');
+        Route::post('', 'store')->name('category.create');
+        Route::patch('', 'update')->name('category.update');
+        Route::delete('', 'delete')->name('category.delete');
+    });
 });

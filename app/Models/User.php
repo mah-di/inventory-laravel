@@ -53,4 +53,9 @@ class User extends Authenticatable
         'verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class);
+    }
 }

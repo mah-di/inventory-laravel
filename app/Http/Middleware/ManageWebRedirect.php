@@ -2,14 +2,12 @@
 
 namespace App\Http\Middleware;
 
-use App\Helpers\JWTHelper;
 use Closure;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Symfony\Component\HttpFoundation\Response;
 
-class RedirectAuthenticatedUser
+class ManageWebRedirect
 {
     /**
      * Handle an incoming request.
@@ -18,15 +16,10 @@ class RedirectAuthenticatedUser
      */
     public function handle(Request $request, Closure $next): Response
     {
-        try {
-            $token = $request->header('token') ?? $request->cookie('token');
+        $response = $next($request);
 
-            if (JWTHelper::verifyToken($token) !== null) throw new Exception("Can't access while logged in.");
+        if ($response->getStatusCode() === 401) return Redirect::route('login.view');
 
-            return $next($request);
-
-        } catch (Exception $exception) {
-            return Redirect::route('dashboard.view');
-        }
+        return $response;
     }
 }

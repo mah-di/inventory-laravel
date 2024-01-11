@@ -18,7 +18,7 @@
                 </div>
                 <div class="modal-footer">
                     <button id="modal-close" class="btn bg-gradient-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>
-                    <button onclick="Save()" id="save-btn" class="btn bg-gradient-success" >Save</button>
+                    <button onclick="save()" id="save-btn" class="btn bg-gradient-success" >Save</button>
                 </div>
             </div>
     </div>
@@ -26,24 +26,32 @@
 
 
 <script>
-    async function Save() {
-        let categoryName = document.getElementById('categoryName').value;
-        if (categoryName.length === 0) {
-            errorToast("Category Required !")
+
+    async function save() {
+        let name = document.querySelector('#categoryName').value
+
+        if (name.length < 2) {
+            return errorToast("Category name must be at least 2 characters long.")
         }
-        else {
-            document.getElementById('modal-close').click();
-            showLoader();
-            let res = await axios.post("/create-category",{name:categoryName})
-            hideLoader();
-            if(res.status===201){
-                successToast('Request completed');
-                document.getElementById("save-form").reset();
-                await getList();
-            }
-            else{
-                errorToast("Request fail !")
-            }
+
+        showLoader()
+
+        let res = await axios.post("{{ route('category.create') }}", {
+            name : name
+        })
+
+        hideLoader()
+
+        if (res.data['status'] === 'success') {
+            successToast(res.data['message'])
+
+            document.querySelector('#categoryName').value = null
+            document.querySelector('#modal-close').click()
+
+            await getList()
+        } else {
+            errorToast(res.data['message'])
         }
     }
+
 </script>

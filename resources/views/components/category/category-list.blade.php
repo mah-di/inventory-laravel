@@ -12,10 +12,10 @@
             </div>
             <hr class="bg-secondary"/>
             <div class="table-responsive">
-            <table class="table" id="tableData">
+            <table class="table" id="dataTable">
                 <thead>
                 <tr class="bg-light">
-                    <th>No</th>
+                    <th class="d-none">No</th>
                     <th>Category</th>
                     <th>Action</th>
                 </tr>
@@ -32,55 +32,69 @@
 
 <script>
 
-getList();
+    getList()
 
+    async function getList() {
+        let dataTable = $('#dataTable')
+        let tableList = $('#tableList')
 
-async function getList() {
+        showLoader()
 
+        let res = await axios.get("{{ route('category.all') }}")
 
-    showLoader();
-    let res=await axios.get("/list-category");
-    hideLoader();
+        hideLoader()
 
-    let tableList=$("#tableList");
-    let tableData=$("#tableData");
+        dataTable.DataTable().destroy()
+        tableList.empty()
 
-    tableData.DataTable().destroy();
-    tableList.empty();
+        if (res.data['status'] === 'success') {
+            res.data['data'].forEach(element => {
+                let row = `<tr>
+                        <td class="d-none">${element['id']}</td>
+                        <td>${element['name']}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-info update-btn" data-id="${element['id']}">Update</button>
+                            <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${element['id']}">Delete</button>
+                        </td>
+                    </tr>`
 
-    res.data.forEach(function (item,index) {
-        let row=`<tr>
-                    <td>${index+1}</td>
-                    <td>${item['name']}</td>
-                    <td>
-                        <button data-id="${item['id']}" class="btn editBtn btn-sm btn-outline-success">Edit</button>
-                        <button data-id="${item['id']}" class="btn deleteBtn btn-sm btn-outline-danger">Delete</button>
-                    </td>
-                 </tr>`
-        tableList.append(row)
-    })
+                tableList.append(row)
+            });
 
-    $('.editBtn').on('click', async function () {
-           let id= $(this).data('id');
-           await FillUpUpdateForm(id)
-           $("#update-modal").modal('show');
+            new DataTable('#dataTable', {
+                order: [[0, 'desc']],
+                lengthMenu: [5,10,20,50]
+            })
 
+            $('.update-btn').on('click', async function () {
+                let id = $(this).data('id')
+                await fillUpdateForm(id)
+                $('#update-modal').modal('show')
+            })
 
-    })
+            $('.delete-btn').on('click', async function () {
+                let id = $(this).data('id')
+                $('#deleteID').val(id)
+                $('#delete-modal').modal('show')
+            })
 
-    $('.deleteBtn').on('click',function () {
-        let id= $(this).data('id');
-        $("#delete-modal").modal('show');
-        $("#deleteID").val(id);
-    })
+        } else {
+            errorToast(res.data['message'])
+        }
+    }
 
-    new DataTable('#tableData',{
-       order:[[0,'desc']],
-       lengthMenu:[5,10,15,20,30]
-   });
+    async function fillUpdateForm(id) {
+        showLoader()
+        let res = await axios.get(`{{ url('/api/category') }}/${id}`)
+        hideLoader()
 
-}
+        if (res.data['status'] === 'success'){
+            document.getElementById('updateID').value = id
+            document.getElementById('categoryNameUpdate').value = res.data['data']['name']
 
+        } else {
+            errorToast(res.data['message'])
+        }
+    }
 
 </script>
-

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -39,5 +40,13 @@ Route::middleware('auth.jwt')->group(function () {
         Route::post('', 'store')->name('category.create');
         Route::patch('', 'update')->name('category.update');
         Route::delete('', 'delete')->name('category.delete');
+    });
+
+    Route::controller(CustomerController::class)->prefix('/customer')->group(function () {
+        Route::get('', 'all')->name('customer.all');
+        Route::get('/{id}', 'find')->name('customer.single');
+        Route::post('', 'store')->name('customer.create');
+        Route::patch('', 'update')->name('customer.update');
+        Route::delete('', 'delete')->name('customer.delete');
     });
 });

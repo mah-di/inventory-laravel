@@ -10,7 +10,7 @@
             <div class="modal-footer justify-content-end">
                 <div>
                     <button type="button" id="delete-modal-close" class="btn mx-2 bg-gradient-primary" data-bs-dismiss="modal">Cancel</button>
-                    <button onclick="itemDelete()" type="button" id="confirmDelete" class="btn  bg-gradient-danger" >Delete</button>
+                    <button onclick="deleteCustomer()" type="button" id="confirmDelete" class="btn  bg-gradient-danger" >Delete</button>
                 </div>
             </div>
         </div>
@@ -18,18 +18,28 @@
 </div>
 
 <script>
-     async  function  itemDelete(){
-            let id=document.getElementById('deleteID').value;
-            document.getElementById('delete-modal-close').click();
-            showLoader();
-            let res=await axios.post("/delete-customer",{id:id})
-            hideLoader();
-            if(res.data===1){
-                successToast("Request completed")
-                await getList();
+
+    async function deleteCustomer() {
+        let id = document.querySelector('#deleteID').value
+
+        showLoader()
+
+        let res = await axios.delete("{{ route('customer.delete') }}", {
+            data : {
+                id : id
             }
-            else{
-                errorToast("Request fail!")
-            }
-     }
+        })
+
+        hideLoader()
+
+        if (res.data['status'] === 'success') {
+            successToast(res.data['message'])
+            document.querySelector('#delete-modal-close').click()
+
+            await getList()
+        } else {
+            errorToast(res.data['message'])
+        }
+    }
+
 </script>

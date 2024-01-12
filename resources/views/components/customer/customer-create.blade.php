@@ -11,10 +11,10 @@
                             <div class="col-12 p-1">
                                 <label class="form-label">Customer Name *</label>
                                 <input type="text" class="form-control" id="customerName">
-                                <label class="form-label">Customer Email *</label>
-                                <input type="text" class="form-control" id="customerEmail">
-                                <label class="form-label">Customer Mobile *</label>
-                                <input type="text" class="form-control" id="customerMobile">
+                                <label class="form-label">Customer Email</label>
+                                <input type="email" class="form-control" id="customerEmail">
+                                <label class="form-label">Customer Contact *</label>
+                                <input type="tel" class="form-control" id="customerContact">
                             </div>
                         </div>
                     </div>
@@ -22,7 +22,7 @@
                 </div>
                 <div class="modal-footer">
                     <button id="modal-close" class="btn bg-gradient-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>
-                    <button onclick="Save()" id="save-btn" class="btn bg-gradient-success" >Save</button>
+                    <button onclick="save()" id="save-btn" class="btn bg-gradient-success" >Save</button>
                 </div>
             </div>
     </div>
@@ -31,40 +31,44 @@
 
 <script>
 
-    async function Save() {
+    async function save() {
+        let name = document.querySelector('#customerName').value
+        let email = document.querySelector('#customerEmail').value
+        let contact = document.querySelector('#customerContact').value
 
-        let customerName = document.getElementById('customerName').value;
-        let customerEmail = document.getElementById('customerEmail').value;
-        let customerMobile = document.getElementById('customerMobile').value;
-
-        if (customerName.length === 0) {
-            errorToast("Customer Name Required !")
+        if (name.length < 3) {
+            return errorToast("Customer name must be at least 3 characters long.")
         }
-        else if(customerEmail.length===0){
-            errorToast("Customer Email Required !")
+
+        if (contact.length < 11) {
+            return errorToast("Customer contact must be at least 11 digits.")
         }
-        else if(customerMobile.length===0){
-            errorToast("Customer Mobile Required !")
+
+        if (contact.length > 14) {
+            return errorToast("Customer contact can't be more than 14 digits.")
         }
-        else {
 
-            document.getElementById('modal-close').click();
+        showLoader()
 
-            showLoader();
-            let res = await axios.post("/create-customer",{name:customerName,email:customerEmail,mobile:customerMobile})
-            hideLoader();
+        let res = await axios.post("{{ route('customer.create') }}", {
+            name : name,
+            email : email,
+            contact : contact
+        })
 
-            if(res.status===201){
+        hideLoader()
 
-                successToast('Request completed');
+        if (res.data['status'] === 'success') {
+            successToast(res.data['message'])
 
-                document.getElementById("save-form").reset();
+            document.querySelector('#customerName').value = null
+            document.querySelector('#customerEmail').value = null
+            document.querySelector('#customerContact').value = null
+            document.querySelector('#modal-close').click()
 
-                await getList();
-            }
-            else{
-                errorToast("Request fail !")
-            }
+            await getList()
+        } else {
+            errorToast(res.data['message'])
         }
     }
 

@@ -11,13 +11,13 @@
                 </div>
             </div>
             <hr class="bg-dark "/>
-            <table class="table" id="tableData">
+            <table class="table" id="dataTable">
                 <thead>
                 <tr class="bg-light">
-                    <th>No</th>
+                    <th class="d-none">No</th>
                     <th>Name</th>
                     <th>Email</th>
-                    <th>Mobile</th>
+                    <th>Contact</th>
                     <th>Action</th>
                 </tr>
                 </thead>
@@ -32,53 +32,74 @@
 
 <script>
 
-getList();
+    getList()
 
+    async function getList() {
+        let dataTable = $('#dataTable')
+        let tableList = $('#tableList')
 
-async function getList() {
-    showLoader();
-    let res=await axios.get("/list-customer");
-    hideLoader();
+        showLoader()
 
-    let tableList=$("#tableList");
-    let tableData=$("#tableData");
+        let res = await axios.get("{{ route('customer.all') }}")
 
-    tableData.DataTable().destroy();
-    tableList.empty();
+        hideLoader()
 
-    res.data.forEach(function (item,index) {
-        let row=`<tr>
-                    <td>${index+1}</td>
-                    <td>${item['name']}</td>
-                    <td>${item['email']}</td>
-                    <td>${item['mobile']}</td>
-                    <td>
-                        <button data-id="${item['id']}" class="btn editBtn btn-sm btn-outline-success">Edit</button>
-                        <button data-id="${item['id']}" class="btn deleteBtn btn-sm btn-outline-danger">Delete</button>
-                    </td>
-                 </tr>`
-        tableList.append(row)
-    })
+        dataTable.DataTable().destroy()
+        tableList.empty()
 
-    $('.editBtn').on('click', async function () {
-           let id= $(this).data('id');
-           await FillUpUpdateForm(id)
-           $("#update-modal").modal('show');
-    })
+        if (res.data['status'] === 'success') {
+            res.data['data'].forEach(element => {
+                let row = `<tr>
+                        <td class="d-none">${element['id']}</td>
+                        <td>${element['name']}</td>
+                        <td>${element['email'] ?? "N/A"}</td>
+                        <td>${element['contact']}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-info update-btn" data-id="${element['id']}">Update</button>
+                            <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${element['id']}">Delete</button>
+                        </td>
+                    </tr>`
 
-    $('.deleteBtn').on('click',function () {
-        let id= $(this).data('id');
-        $("#delete-modal").modal('show');
-        $("#deleteID").val(id);
-    })
+                tableList.append(row)
+            });
 
-    new DataTable('#tableData',{
-        order:[[0,'desc']],
-        lengthMenu:[5,10,15,20,30]
-    });
+            new DataTable('#dataTable', {
+                order: [[0, 'desc']],
+                lengthMenu: [5,10,20,50]
+            })
 
-}
+            $('.update-btn').on('click', async function () {
+                let id = $(this).data('id')
+                await fillUpdateForm(id)
+                $('#update-modal').modal('show')
+            })
 
+            $('.delete-btn').on('click', async function () {
+                let id = $(this).data('id')
+                $('#deleteID').val(id)
+                $('#delete-modal').modal('show')
+            })
+
+        } else {
+            errorToast(res.data['message'])
+        }
+    }
+
+    async function fillUpdateForm(id) {
+        showLoader()
+        let res = await axios.get(`{{ url('/api/customer') }}/${id}`)
+        hideLoader()
+
+        if (res.data['status'] === 'success'){
+            document.getElementById('updateID').value = id
+            document.getElementById('customerNameUpdate').value = res.data['data']['name']
+            document.getElementById('customerEmailUpdate').value = res.data['data']['email']
+            document.getElementById('customerContactUpdate').value = res.data['data']['contact']
+
+        } else {
+            errorToast(res.data['message'])
+        }
+    }
 
 </script>
 

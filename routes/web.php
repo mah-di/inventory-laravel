@@ -32,6 +32,7 @@ Route::middleware(['web.redirect', 'auth.jwt', 'verified.email'])->group(functio
     Route::view('/profile', 'pages.dashboard.profile-page')->name('profile.view');
     Route::view('/category', 'pages.dashboard.category-page')->name('category.view');
     Route::view('/customer', 'pages.dashboard.customer-page')->name('customer.view');
+    Route::view('/product', 'pages.dashboard.product-page')->name('product.view');
 
     Route::get('/logout', [UserController::class, 'logout'])->name('logout');
 });

@@ -5,13 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model
+class Product extends Model
 {
+
     use HasFactory;
 
     protected $fillable = [
-        'name',
         'user_id',
+        'category_id',
+        'name',
+        'price',
+        'stock',
+        'img_url',
     ];
 
     protected $hidden = [
@@ -19,14 +24,18 @@ class Category extends Model
         'updated_at',
     ];
 
+    protected $attributes = [
+        'img_url' => 'img/products/stock-product.png'
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function products()
+    public function category()
     {
-        return $this->hasMany(Product::class);
+        return $this->belongsTo(Category::class);
     }
 
 }

@@ -12,20 +12,20 @@
 
 
                                 <label class="form-label">Category</label>
-                                <select type="text" class="form-control form-select" id="productCategoryUpdate">
-                                    <option value="">Select Category</option>
-                                </select>
+                                <select type="text" class="form-control form-select" id="productCategoryUpdate"></select>
 
                                 <label class="form-label mt-2">Name</label>
                                 <input type="text" class="form-control" id="productNameUpdate">
 
                                 <label class="form-label mt-2">Price</label>
-                                <input type="text" class="form-control" id="productPriceUpdate">
+                                <input type="number" step="0.01" min="0" class="form-control" id="productPriceUpdate">
 
-                                <label class="form-label mt-2">Unit</label>
-                                <input type="text" class="form-control" id="productUnitUpdate">
+                                <input type="number" class="d-none" id="productExistingStock">
+
+                                <label class="form-label mt-2">Add Stock</label>
+                                <input type="number" value="0" min="0" class="form-control" id="productStockUpdate">
                                 <br/>
-                                <img class="w-15" id="oldImg" src="{{asset('images/default.jpg')}}"/>
+                                <img class="w-15" id="oldImg" src="{{ asset('images/default.jpg') }}"/>
                                 <br/>
                                 <label class="form-label mt-2">Image</label>
                                 <input oninput="oldImg.src=window.URL.createObjectURL(this.files[0])"  type="file" class="form-control" id="productImgUpdate">
@@ -52,94 +52,105 @@
 
 <script>
 
+    async function fillUpdateForm(id, filePath) {
+        document.getElementById('updateID').value = id
+        document.getElementById('filePath').value = filePath
+        document.getElementById('oldImg').src = filePath
 
+        showLoader()
 
-    async function UpdateFillCategoryDropDown(){
-        let res = await axios.get("/list-category")
-        res.data.forEach(function (item,i) {
-            let option=`<option value="${item['id']}">${item['name']}</option>`
-            $("#productCategoryUpdate").append(option);
+        await updateFillCategoryDropDown()
+        let res = await axios.get(`{{ url('/api/product') }}/${id}`)
+
+        hideLoader()
+
+        document.getElementById('productCategoryUpdate').value = res.data['data']['category_id']
+        document.getElementById('productNameUpdate').value = res.data['data']['name']
+        document.getElementById('productPriceUpdate').value = res.data['data']['price']
+        document.getElementById('productExistingStock').value = res.data['data']['stock']
+    }
+
+    async function updateFillCategoryDropDown() {
+        let res = await axios.get("{{ route('category.all') }}")
+
+        document.getElementById('productCategoryUpdate').innerHTML = `<option value="">Select Category</option>`
+
+        res.data['data'].forEach(function (element) {
+            let option = `<option value="${element['id']}">${element['name']}</option>`
+
+            $("#productCategoryUpdate").append(option)
         })
     }
 
-
-    async function FillUpUpdateForm(id,filePath){
-
-        document.getElementById('updateID').value=id;
-        document.getElementById('filePath').value=filePath;
-        document.getElementById('oldImg').src=filePath;
-
-
-        showLoader();
-        await UpdateFillCategoryDropDown();
-
-        let res=await axios.post("/product-by-id",{id:id})
-        hideLoader();
-
-        document.getElementById('productNameUpdate').value=res.data['name'];
-        document.getElementById('productPriceUpdate').value=res.data['price'];
-        document.getElementById('productUnitUpdate').value=res.data['unit'];
-        document.getElementById('productCategoryUpdate').value=res.data['category_id'];
-
-    }
-
-
-
     async function update() {
+        let id = document.getElementById('updateID').value
+        let category_id = document.getElementById('productCategoryUpdate').value
+        let name = document.getElementById('productNameUpdate').value
+        let price = document.getElementById('productPriceUpdate').value
 
-        let productCategoryUpdate=document.getElementById('productCategoryUpdate').value;
-        let productNameUpdate = document.getElementById('productNameUpdate').value;
-        let productPriceUpdate = document.getElementById('productPriceUpdate').value;
-        let productUnitUpdate = document.getElementById('productUnitUpdate').value;
-        let updateID=document.getElementById('updateID').value;
-        let filePath=document.getElementById('filePath').value;
-        let productImgUpdate = document.getElementById('productImgUpdate').files[0];
+        let existingStock = document.getElementById('productExistingStock').value
+        let addStock = document.getElementById('productStockUpdate').value ?? 0
+        let stock = Number(existingStock) + Number(addStock)
 
+        let img = document.getElementById('productImgUpdate').files[0] ?? null
+        let img_url = document.getElementById('filePath').value
 
-        if (productCategoryUpdate.length === 0) {
-            errorToast("Product Category Required !")
-        }
-        else if(productNameUpdate.length===0){
-            errorToast("Product Name Required !")
-        }
-        else if(productPriceUpdate.length===0){
-            errorToast("Product Price Required !")
-        }
-        else if(productUnitUpdate.length===0){
-            errorToast("Product Unit Required !")
+        if (category_id.length === 0) {
+            return errorToast("Product Category is Required.")
         }
 
-        else {
+        if(name.length === 0) {
+            return errorToast("Product Name is Required.")
+        }
 
-            document.getElementById('update-modal-close').click();
+        if(price.length === 0) {
+            return errorToast("Product Price is Required.")
+        }
 
-            let formData=new FormData();
-            formData.append('img',productImgUpdate)
-            formData.append('id',updateID)
-            formData.append('name',productNameUpdate)
-            formData.append('price',productPriceUpdate)
-            formData.append('unit',productNameUpdate)
-            formData.append('category_id',productCategoryUpdate)
-            formData.append('file_path',filePath)
+        if(price < 0) {
+            return errorToast("Product Price Can't Be Negative.")
+        }
 
-            const config = {
-                headers: {
-                    'content-type': 'multipart/form-data'
-                }
+        if(addStock < 0) {
+            return errorToast("Add Stock Field Can't Be Negative.")
+        }
+
+        let data = new FormData()
+
+        data.append('_method', 'PATCH')
+        data.append('id', id)
+        data.append('category_id', category_id)
+        data.append('name', name)
+        data.append('price', price)
+        data.append('stock', stock)
+
+        img !== null ? data.append('img', img) : null
+
+        data.append('img_url', img_url)
+
+        const config = {
+            headers : {
+                'content-type': 'multipart/form-data'
             }
+        }
 
-            showLoader();
-            let res = await axios.post("/update-product",formData,config)
-            hideLoader();
+        showLoader()
 
-            if(res.status===200 && res.data===1){
-                successToast('Request completed');
-                document.getElementById("update-form").reset();
-                await getList();
-            }
-            else{
-                errorToast("Request fail !")
-            }
+        let res = await axios.post("{{ route('product.update') }}", data, config)
+
+        hideLoader()
+
+        if(res.data['status'] === 'success'){
+            successToast(res.data['message'])
+
+            document.getElementById("update-form").reset()
+
+            document.getElementById('update-modal-close').click()
+
+            await getList()
+        } else {
+            errorToast(res.data['message'])
         }
     }
+
 </script>

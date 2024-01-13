@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -34,19 +35,36 @@ Route::middleware('auth.jwt')->group(function () {
     Route::patch('/user', [UserController::class, 'update'])->name('update.user');
     Route::get('/user-details', [UserController::class, 'getUser'])->name('user.details');
 
-    Route::controller(CategoryController::class)->prefix('/category')->group(function () {
-        Route::get('', 'all')->name('category.all');
-        Route::get('/{id}', 'find')->name('category.single');
-        Route::post('', 'store')->name('category.create');
-        Route::patch('', 'update')->name('category.update');
-        Route::delete('', 'delete')->name('category.delete');
-    });
+    Route::controller(CategoryController::class)
+        ->prefix('/category')
+        ->as('category.')
+        ->group(function () {
+            Route::get('', 'all')->name('all');
+            Route::get('/{id}', 'find')->name('single');
+            Route::post('', 'store')->name('create');
+            Route::patch('', 'update')->name('update');
+            Route::delete('', 'delete')->name('delete');
+        });
 
-    Route::controller(CustomerController::class)->prefix('/customer')->group(function () {
-        Route::get('', 'all')->name('customer.all');
-        Route::get('/{id}', 'find')->name('customer.single');
-        Route::post('', 'store')->name('customer.create');
-        Route::patch('', 'update')->name('customer.update');
-        Route::delete('', 'delete')->name('customer.delete');
-    });
+    Route::controller(CustomerController::class)
+        ->prefix('/customer')
+        ->as('customer.')
+        ->group(function () {
+            Route::get('', 'all')->name('all');
+            Route::get('/{id}', 'find')->name('single');
+            Route::post('', 'store')->name('create');
+            Route::patch('', 'update')->name('update');
+            Route::delete('', 'delete')->name('delete');
+        });
+
+    Route::controller(ProductController::class)
+        ->prefix('/product')
+        ->as('product.')
+        ->group(function () {
+            Route::get('', 'all')->name('all');
+            Route::get('/{id}', 'find')->name('single');
+            Route::post('', 'store')->name('create');
+            Route::patch('', 'update')->name('update');
+            Route::delete('', 'delete')->name('delete');
+        });
 });

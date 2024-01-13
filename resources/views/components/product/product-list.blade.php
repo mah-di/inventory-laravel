@@ -11,13 +11,13 @@
                 </div>
             </div>
             <hr class="bg-dark "/>
-            <table class="table" id="tableData">
+            <table class="table" id="dataTable">
                 <thead>
                 <tr class="bg-light">
                     <th>Image</th>
                     <th>Name</th>
                     <th>Price</th>
-                    <th>Unit</th>
+                    <th>Stock</th>
                     <th>Action</th>
                 </tr>
                 </thead>
@@ -32,60 +32,58 @@
 
 <script>
 
-getList();
+    getList()
 
+    async function getList() {
+        showLoader()
+        let res = await axios.get("{{ route('product.all') }}")
+        hideLoader()
 
-async function getList() {
+        let tableList = $("#tableList")
+        let dataTable = $("#dataTable")
 
+        dataTable.DataTable().destroy()
+        tableList.empty()
 
-    showLoader();
-    let res=await axios.get("/list-product");
-    hideLoader();
+        res.data['data'].forEach(function (element) {
+            let row = `<tr>
+                        <td><img class="w-15 h-auto" alt="" src="${element['img_url']}"></td>
+                        <td>${element['name']}</td>
+                        <td>${element['price']}</td>
+                        <td>${element['stock']}</td>
+                        <td>
+                            <button data-path="${element['img_url']}" data-id="${element['id']}" class="btn editBtn btn-sm btn-outline-info">Edit</button>
+                            <button data-path="${element['img_url']}" data-id="${element['id']}" class="btn deleteBtn btn-sm btn-outline-danger">Delete</button>
+                        </td>
+                    </tr>`
 
-    let tableList=$("#tableList");
-    let tableData=$("#tableData");
+            tableList.append(row)
+        })
 
-    tableData.DataTable().destroy();
-    tableList.empty();
+        $('.editBtn').on('click', async function () {
+            let id = $(this).data('id')
+            let filePath = $(this).data('path')
 
-    res.data.forEach(function (item,index) {
-        let row=`<tr>
-                    <td><img class="w-15 h-auto" alt="" src="${item['img_url']}"></td>
-                    <td>${item['name']}</td>
-                    <td>${item['price']}</td>
-                    <td>${item['unit']}</td>
-                    <td>
-                        <button data-path="${item['img_url']}" data-id="${item['id']}" class="btn editBtn btn-sm btn-outline-success">Edit</button>
-                        <button data-path="${item['img_url']}" data-id="${item['id']}" class="btn deleteBtn btn-sm btn-outline-danger">Delete</button>
-                    </td>
-                 </tr>`
-        tableList.append(row)
-    })
+            await fillUpdateForm(id, filePath)
 
-    $('.editBtn').on('click', async function () {
-           let id= $(this).data('id');
-           let filePath= $(this).data('path');
-           await FillUpUpdateForm(id,filePath)
-           $("#update-modal").modal('show');
-    })
+            $("#update-modal").modal('show')
+        })
 
-    $('.deleteBtn').on('click',function () {
-        let id= $(this).data('id');
-        let path= $(this).data('path');
+        $('.deleteBtn').on('click', function () {
+            let id = $(this).data('id')
+            let path = $(this).data('path')
 
-        $("#delete-modal").modal('show');
-        $("#deleteID").val(id);
-        $("#deleteFilePath").val(path)
+            $("#deleteID").val(id)
+            $("#deleteFilePath").val(path)
 
-    })
+            $("#delete-modal").modal('show')
+        })
 
-    new DataTable('#tableData',{
-        order:[[0,'desc']],
-        lengthMenu:[5,10,15,20,30]
-    });
-
-}
-
+        new DataTable('#dataTable', {
+            order : [[0, 'desc']],
+            lengthMenu : [5, 10, 20, 50]
+        });
+    }
 
 </script>
 

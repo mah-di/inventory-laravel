@@ -5,16 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Customer extends Model
+class Invoice extends Model
 {
 
     use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'name',
-        'email',
-        'contact',
+        'customer_id',
+        'total',
+        'discount',
+        'vat',
+        'payable',
     ];
 
     protected $hidden = [
@@ -27,9 +29,14 @@ class Customer extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function invoices()
+    public function customer()
     {
-        return $this->hasMany(Invoice::class);
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function invoiceProducts()
+    {
+        return $this->hasMany(InvoiceProduct::class);
     }
 
 }

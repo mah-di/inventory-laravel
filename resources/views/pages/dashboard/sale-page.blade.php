@@ -1,5 +1,7 @@
 @extends('layout.sidenav-layout')
+
 @section('content')
+
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-4 col-lg-4 p-2">
@@ -8,8 +10,8 @@
                         <div class="col-8">
                             <span class="text-bold text-dark">BILLED TO </span>
                             <p class="text-xs mx-0 my-1">Name:  <span id="CName"></span> </p>
-                            <p class="text-xs mx-0 my-1">Email:  <span id="CEmail"></span></p>
-                            <p class="text-xs mx-0 my-1">User ID:  <span id="CId"></span> </p>
+                            <p class="text-xs mx-0 my-1">Contact:  <span id="CContact"></span></p>
+                            <p class="text-xs mx-0 my-1">Customer ID:  <span id="CId"></span> </p>
                         </div>
                         <div class="col-4">
                             <img class="w-50" src="{{"images/logo.png"}}">
@@ -43,7 +45,7 @@
                            <p class="text-bold text-xs my-1 text-dark"> VAT(5%): <i class="bi bi-currency-dollar"></i>  <span id="vat"></span></p>
                            <p class="text-bold text-xs my-1 text-dark"> Discount: <i class="bi bi-currency-dollar"></i>  <span id="discount"></span></p>
                            <span class="text-xxs">Discount(%):</span>
-                           <input onkeydown="return false" value="0" min="0" type="number" step="0.25" onchange="DiscountChange()" class="form-control w-40 " id="discountP"/>
+                           <input onkeydown="return false" value="0" min="0" type="number" step="0.25" onchange="discountChange()" class="form-control w-40 " id="discountP"/>
                            <p>
                               <button onclick="createInvoice()" class="btn  my-3 bg-gradient-primary w-40">Confirm</button>
                            </p>
@@ -62,6 +64,7 @@
                         <thead class="w-100">
                         <tr class="text-xs text-bold">
                             <td>Product</td>
+                            <td>Stock</td>
                             <td>Pick</td>
                         </tr>
                         </thead>
@@ -78,6 +81,7 @@
                         <thead class="w-100">
                         <tr class="text-xs text-bold">
                             <td>Customer</td>
+                            <td>Contact</td>
                             <td>Pick</td>
                         </tr>
                         </thead>
@@ -92,8 +96,6 @@
     </div>
 
 
-
-
     <div class="modal animated zoomIn" id="create-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-md modal-dialog-centered">
             <div class="modal-content">
@@ -105,14 +107,12 @@
                         <div class="container">
                             <div class="row">
                                 <div class="col-12 p-1">
-                                    <label class="form-label">Product ID *</label>
-                                    <input type="text" class="form-control" id="PId">
-                                    <label class="form-label mt-2">Product Name *</label>
-                                    <input type="text" class="form-control" id="PName">
-                                    <label class="form-label mt-2">Product Price *</label>
-                                    <input type="text" class="form-control" id="PPrice">
+                                    <input type="text" class="d-none" id="PId">
+                                    <p class="text-lg">Name: <span id="PName"></span></p>
+                                    <p class="">Price: $<span id="PPrice"></span></p>
+                                    <p class="">Remaining Stock: <span id="PStock"></span></p>
                                     <label class="form-label mt-2">Product Qty *</label>
-                                    <input type="text" class="form-control" id="PQty">
+                                    <input type="number" value="0" class="form-control" id="PQty">
                                 </div>
                             </div>
                         </div>
@@ -129,235 +129,265 @@
 
     <script>
 
+        (async () => {
+            showLoader()
 
-        (async ()=>{
-          showLoader();
-          await  CustomerList();
-          await ProductList();
-          hideLoader();
+            await  customerList()
+            await productList()
+
+            hideLoader()
         })()
 
+        let invoiceItemList = []
 
-        let InvoiceItemList=[];
-
-
-        function ShowInvoiceItem() {
-
-            let invoiceList=$('#invoiceList');
+        function showInvoiceItem() {
+            let invoiceList = $('#invoiceList');
 
             invoiceList.empty();
 
-            InvoiceItemList.forEach(function (item,index) {
-                let row=`<tr class="text-xs">
-                        <td>${item['product_name']}</td>
-                        <td>${item['qty']}</td>
-                        <td>${item['sale_price']}</td>
+            invoiceItemList.forEach(function (element, index) {
+                let row = `<tr class="text-xs">
+                        <td>${element['product_name']}</td>
+                        <td>${element['qty']}</td>
+                        <td>${element['sale_price']}</td>
                         <td><a data-index="${index}" class="btn remove text-xxs px-2 py-1  btn-sm m-0">Remove</a></td>
                      </tr>`
+
                 invoiceList.append(row)
             })
 
-            CalculateGrandTotal();
+            calculateGrandTotal()
 
             $('.remove').on('click', async function () {
-                let index= $(this).data('index');
-                removeItem(index);
+                let index= $(this).data('index')
+
+                removeItem(index)
             })
 
         }
-
 
         function removeItem(index) {
-            InvoiceItemList.splice(index,1);
-            ShowInvoiceItem()
+            let item = invoiceItemList[index]
+            let prevStock = document.getElementById(`stock-${item.product_id}`).innerText
+            document.getElementById(`stock-${item.product_id}`).innerText = Number(prevStock) + Number(item.qty)
+
+            if (prevStock == 0) {
+                document.getElementById(`productAdd-${item.product_id}`).innerHTML = `<button data-id="${item.product_id}" data-name="${item.product_name}" data-price="${item.price}" data-stock="${item.stock}" class="btn btn-outline-dark text-xxs px-2 py-1 addProduct btn-sm m-0">Add</button>`
+
+                addProductOnClick()
+            }
+
+            invoiceItemList.splice(index, 1)
+
+            showInvoiceItem()
         }
 
-        function DiscountChange() {
-            CalculateGrandTotal();
+        function discountChange() {
+            calculateGrandTotal()
         }
 
-        function CalculateGrandTotal(){
-            let Total=0;
-            let Vat=0;
-            let Payable=0;
-            let Discount=0;
-            let discountPercentage=(parseFloat(document.getElementById('discountP').value));
+        function calculateGrandTotal() {
+            let total = 0
+            let discount = 0
+            let discountPercentage = (parseFloat(document.getElementById('discountP').value))
 
-            InvoiceItemList.forEach((item,index)=>{
-                Total=Total+parseFloat(item['sale_price'])
+            invoiceItemList.forEach((element) => {
+                total += parseFloat(element['sale_price'])
             })
 
-             if(discountPercentage===0){
-                 Vat= ((Total*5)/100).toFixed(2);
-             }
-             else {
-                 Discount=((Total*discountPercentage)/100).toFixed(2);
-                 Total=(Total-((Total*discountPercentage)/100)).toFixed(2);
-                 Vat= ((Total*5)/100).toFixed(2);
-             }
+            if(discountPercentage > 0){
+                discount = ((total * discountPercentage) / 100).toFixed(2)
 
-             Payable=(parseFloat(Total)+parseFloat(Vat)).toFixed(2);
+                total = (total - ((total * discountPercentage) / 100)).toFixed(2)
+            }
 
+            let vat = ((total * 5) / 100).toFixed(2)
+            let payable = (parseFloat(total) + parseFloat(vat)).toFixed(2)
 
-            document.getElementById('total').innerText=Total;
-            document.getElementById('payable').innerText=Payable;
-            document.getElementById('vat').innerText=Vat;
-            document.getElementById('discount').innerText=Discount;
+            document.getElementById('total').innerText = total
+            document.getElementById('payable').innerText = payable
+            document.getElementById('vat').innerText = vat
+            document.getElementById('discount').innerText = discount
         }
-
 
         function add() {
-           let PId= document.getElementById('PId').value;
-           let PName= document.getElementById('PName').value;
-           let PPrice=document.getElementById('PPrice').value;
-           let PQty= document.getElementById('PQty').value;
-           let PTotalPrice=(parseFloat(PPrice)*parseFloat(PQty)).toFixed(2);
-           if(PId.length===0){
-               errorToast("Product ID Required");
-           }
-           else if(PName.length===0){
-               errorToast("Product Name Required");
-           }
-           else if(PPrice.length===0){
-               errorToast("Product Price Required");
-           }
-           else if(PQty.length===0){
-               errorToast("Product Quantity Required");
-           }
-           else{
-               let item={product_name:PName,product_id:PId,qty:PQty,sale_price:PTotalPrice};
-               InvoiceItemList.push(item);
-               console.log(InvoiceItemList);
-               $('#create-modal').modal('hide')
-               ShowInvoiceItem();
-           }
+            let product_id = document.getElementById('PId').value
+            let name = document.getElementById('PName').innerText
+            let price = document.getElementById('PPrice').innerText
+            let qty = document.getElementById('PQty').value
+            let stock = document.getElementById('PStock').innerText
+
+            let sale_price = (parseFloat(price) * parseFloat(qty)).toFixed(2)
+
+            if (qty < 1) {
+                return errorToast("Sale Quantity Must Be Greater Than 0")
+            }
+
+            if (Number(qty) > Number(stock)) {
+                return errorToast("Sale Quantity Exceeds Available Stock")
+            }
+
+            let item={
+                product_name : name,
+                product_id : product_id,
+                price : price,
+                qty : qty,
+                sale_price : sale_price,
+                stock : stock,
+            }
+
+            invoiceItemList.push(item)
+
+            let prevStock = document.getElementById(`stock-${product_id}`).innerText
+            let newStock = Number(prevStock) - Number(qty)
+
+            document.getElementById(`stock-${product_id}`).innerText = newStock
+
+            if (newStock === 0) {
+                document.getElementById(`productAdd-${product_id}`).innerHTML = `<span class="text-danger">Out Of Stock</span>`
+            }
+
+            document.getElementById('PQty').value = 0
+            $('#create-modal').modal('hide')
+
+            showInvoiceItem()
         }
 
+        function addModal(id, name, price, stock) {
+            document.getElementById('PId').value = id
+            document.getElementById('PName').innerText = name
+            document.getElementById('PPrice').innerText = price
+            document.getElementById('PStock').innerText = stock
 
-
-
-        function addModal(id,name,price) {
-            document.getElementById('PId').value=id
-            document.getElementById('PName').value=name
-            document.getElementById('PPrice').value=price
             $('#create-modal').modal('show')
         }
 
+        async function customerList() {
+            let res = await axios.get("{{ route('customer.all') }}")
 
-        async function CustomerList(){
-            let res=await axios.get("/list-customer");
-            let customerList=$("#customerList");
-            let customerTable=$("#customerTable");
-            customerTable.DataTable().destroy();
-            customerList.empty();
+            let customerList = $("#customerList")
+            let customerTable = $("#customerTable")
 
-            res.data.forEach(function (item,index) {
-                let row=`<tr class="text-xs">
-                        <td><i class="bi bi-person"></i> ${item['name']}</td>
-                        <td><a data-name="${item['name']}" data-email="${item['email']}" data-id="${item['id']}" class="btn btn-outline-dark addCustomer  text-xxs px-2 py-1  btn-sm m-0">Add</a></td>
-                     </tr>`
+            customerTable.DataTable().destroy()
+            customerList.empty()
+
+            res.data['data'].forEach(function (element) {
+                let row = `
+                    <tr class="text-xs">
+                        <td><i class="bi bi-person"></i> ${element['name']}</td>
+                        <td><i class="bi bi-phone"></i> ${element['contact']}</td>
+                        <td>
+                            <button data-name="${element['name']}" data-contact="${element['contact']}" data-id="${element['id']}" class="btn btn-outline-dark addCustomer text-xxs px-2 py-1 btn-sm m-0">Add</button>
+                        </td>
+                    </tr>
+                    `
+
                 customerList.append(row)
             })
 
-
             $('.addCustomer').on('click', async function () {
+                let name = $(this).data('name')
+                let contact = $(this).data('contact')
+                let id = $(this).data('id')
 
-                let CName= $(this).data('name');
-                let CEmail= $(this).data('email');
-                let CId= $(this).data('id');
-
-                $("#CName").text(CName)
-                $("#CEmail").text(CEmail)
-                $("#CId").text(CId)
-
+                $("#CName").text(name)
+                $("#CContact").text(contact)
+                $("#CId").text(id)
             })
 
-            new DataTable('#customerTable',{
-                order:[[0,'desc']],
-                scrollCollapse: false,
-                info: false,
-                lengthChange: false
-            });
+            new DataTable('#customerTable', {
+                order : [[0, 'desc']],
+                scrollCollapse : false,
+                info : false,
+                lengthChange : false
+            })
         }
 
+        async function productList() {
+            let res = await axios.get("{{ route('product.all') }}")
 
-        async function ProductList(){
-            let res=await axios.get("/list-product");
-            let productList=$("#productList");
-            let productTable=$("#productTable");
-            productTable.DataTable().destroy();
-            productList.empty();
+            let productList = $("#productList")
+            let productTable = $("#productTable")
 
-            res.data.forEach(function (item,index) {
-                let row=`<tr class="text-xs">
-                        <td> <img class="w-10" src="${item['img_url']}"/> ${item['name']} ($ ${item['price']})</td>
-                        <td><a data-name="${item['name']}" data-price="${item['price']}" data-id="${item['id']}" class="btn btn-outline-dark text-xxs px-2 py-1 addProduct  btn-sm m-0">Add</a></td>
-                     </tr>`
+            productTable.DataTable().destroy()
+            productList.empty()
+
+            res.data['data'].forEach(function (element) {
+                let addButton = `<td id="productAdd-${element['id']}"><span class="text-danger">Out Of Stock</span></td>`
+
+                if (element['stock'] > 0) {
+                    addButton = `<td id="productAdd-${element['id']}"><button data-id="${element['id']}" data-name="${element['name']}" data-price="${element['price']}" data-stock="${element['stock']}" class="btn btn-outline-dark text-xxs px-2 py-1 addProduct btn-sm m-0">Add</button></td>`
+                }
+
+                let row = `
+                    <tr class="text-xs">
+                        <td> <img class="w-10" src="${element['img_url']}"/> ${element['name']} ($ ${element['price']})</td>
+                        <td id="stock-${element['id']}">${element['stock']}</td>
+                        ${addButton}
+                    </tr>
+                     `
+
                 productList.append(row)
             })
 
+            addProductOnClick()
 
-            $('.addProduct').on('click', async function () {
-                let PName= $(this).data('name');
-                let PPrice= $(this).data('price');
-                let PId= $(this).data('id');
-                addModal(PId,PName,PPrice)
+            new DataTable('#productTable', {
+                order : [[0, 'desc']],
+                scrollCollapse : false,
+                info : false,
+                lengthChange : false
             })
-
-
-            new DataTable('#productTable',{
-                order:[[0,'desc']],
-                scrollCollapse: false,
-                info: false,
-                lengthChange: false
-            });
         }
 
+        async function addProductOnClick() {
+            $('.addProduct').on('click', async function () {
+                let id = $(this).data('id')
+                let name = $(this).data('name')
+                let price = $(this).data('price')
+                let stock = $(this).data('stock')
 
+                addModal(id, name, price, stock)
+            })
+        }
 
-      async  function createInvoice() {
-            let total=document.getElementById('total').innerText;
-            let discount=document.getElementById('discount').innerText
-            let vat=document.getElementById('vat').innerText
-            let payable=document.getElementById('payable').innerText
-            let CId=document.getElementById('CId').innerText;
+        async function createInvoice() {
+            let total = document.getElementById('total').innerText
+            let discount = document.getElementById('discount').innerText
+            let vat = document.getElementById('vat').innerText
+            let payable = document.getElementById('payable').innerText
+            let customer_id = document.getElementById('CId').innerText
 
-
-            let Data={
-                "total":total,
-                "discount":discount,
-                "vat":vat,
-                "payable":payable,
-                "customer_id":CId,
-                "products":InvoiceItemList
+            if(customer_id.length === 0) {
+                return errorToast("Please Select A Customer.")
             }
 
-
-            if(CId.length===0){
-                errorToast("Customer Required !")
+            if(invoiceItemList.length === 0) {
+                return errorToast("At Least 1 Product Is Required.")
             }
-            else if(InvoiceItemList.length===0){
-                errorToast("Product Required !")
+
+            let data = {
+                "total" : total,
+                "discount" : discount,
+                "vat" : vat,
+                "payable" : payable,
+                "customer_id" : customer_id,
+                "products" : invoiceItemList
+            }
+
+            showLoader()
+            let res=await axios.post("{{ route('invoice.create') }}", data)
+            hideLoader()
+
+            if(res.data['status'] === 'success') {
+                // window.location.href='/invoicePage'
+                successToast(res.data['message'])
             }
             else{
-
-                showLoader();
-                let res=await axios.post("/invoice-create",Data)
-                hideLoader();
-                if(res.data===1){
-                    window.location.href='/invoicePage'
-                    successToast("Invoice Created");
-                }
-                else{
-                    errorToast("Something Went Wrong")
-                }
+                errorToast(res.data['message'])
             }
-
         }
 
     </script>
-
-
-
 
 @endsection

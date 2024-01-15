@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -65,6 +66,16 @@ Route::middleware('auth.jwt')->group(function () {
             Route::get('/{id}', 'find')->name('single');
             Route::post('', 'store')->name('create');
             Route::patch('', 'update')->name('update');
+            Route::delete('', 'delete')->name('delete');
+        });
+
+    Route::controller(InvoiceController::class)
+        ->prefix('/invoice')
+        ->as('invoice.')
+        ->group(function () {
+            Route::get('', 'all')->name('all');
+            Route::get('/{id}', 'find')->name('single');
+            Route::post('', 'store')->name('create');
             Route::delete('', 'delete')->name('delete');
         });
 });

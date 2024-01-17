@@ -1,4 +1,4 @@
-<div class="modal animated zoomIn" id="delete-modal">
+<div class="modal animated zoomIn" id="delete-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="z-index: 10000">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body text-center">
@@ -8,7 +8,7 @@
             </div>
             <div class="modal-footer justify-content-end">
                 <div>
-                    <button type="button" id="delete-modal-close" class="btn bg-gradient-success" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" onclick="document.querySelector('#details-modal').style.zIndex = 1050" id="delete-modal-close" class="btn bg-gradient-success" data-bs-dismiss="modal">Cancel</button>
                     <button onclick="itemDelete()" type="button" id="confirmDelete" class="btn bg-gradient-danger" >Delete</button>
                 </div>
             </div>
@@ -17,18 +17,40 @@
 </div>
 
 <script>
-     async  function  itemDelete(){
-            let id=document.getElementById('deleteID').value;
-            document.getElementById('delete-modal-close').click();
-            showLoader();
-            let res=await axios.post("/invoice-delete",{inv_id:id})
-            hideLoader();
-            if(res.data===1){
-                successToast("Request completed")
-                await getList();
+
+    async function itemDelete() {
+        let id = document.getElementById('deleteID').value
+
+        showLoader()
+
+        let res = await axios.delete("{{ route('invoice.delete') }}", {
+            data : {
+                id : id
             }
-            else{
-                errorToast("Request fail!")
+        })
+
+        hideLoader()
+
+        if (res.data['status'] === 'success') {
+            document.getElementById('delete-modal-close').click()
+
+            document.querySelector('#details-modal').style.zIndex = 1050
+            document.querySelector('#details-modal-close').click()
+
+            successToast(res.data['message'])
+
+            try {
+                soldItemList.forEach(item => {
+                    restock(item)
+                })
+            } catch (error) {
+                await getList()
             }
-     }
+
+        }
+        else {
+            errorToast(res.data['message'])
+        }
+    }
+
 </script>

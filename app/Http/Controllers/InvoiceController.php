@@ -19,7 +19,7 @@ class InvoiceController extends Controller
         try {
             $userId = $request->header('id');
 
-            $invoices = Invoice::where('user_id', '=', $userId)->get();
+            $invoices = Invoice::where('user_id', '=', $userId)->with('customer')->get();
 
             return response()->json([
                 'status' => 'success',
@@ -123,12 +123,18 @@ class InvoiceController extends Controller
 
                 $this->storeInvoiceProduct($request);
             }
-
             DB::commit();
+
+            $invoice = Invoice::where('id', $invoice->id)
+                ->with([
+                    'customer',
+                    'invoiceProducts' => fn ($q) => $q->with(['product'])
+                ])
+                ->first();
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Invoice created successfully.',
+                'message' => 'Sale Has Been Recorded.',
                 'data' => $invoice,
             ]);
 

@@ -22,7 +22,7 @@
                     <hr class="mx-0 my-2 p-0 bg-secondary"/>
                     <div class="row">
                         <div class="col-12">
-                            <table class="table w-100" id="invoiceTable">
+                            <table class="table w-100" id="invoicePreviewTable">
                                 <thead class="w-100">
                                 <tr class="text-xs">
                                     <td>Name</td>
@@ -31,7 +31,7 @@
                                     <td>Remove</td>
                                 </tr>
                                 </thead>
-                                <tbody  class="w-100" id="invoiceList">
+                                <tbody  class="w-100" id="invoicePreviewList">
 
                                 </tbody>
                             </table>
@@ -40,12 +40,12 @@
                     <hr class="mx-0 my-2 p-0 bg-secondary"/>
                     <div class="row">
                        <div class="col-12">
-                           <p class="text-bold text-xs my-1 text-dark"> TOTAL: <i class="bi bi-currency-dollar"></i> <span id="total"></span></p>
-                           <p class="text-bold text-xs my-2 text-dark"> PAYABLE: <i class="bi bi-currency-dollar"></i>  <span id="payable"></span></p>
-                           <p class="text-bold text-xs my-1 text-dark"> VAT(5%): <i class="bi bi-currency-dollar"></i>  <span id="vat"></span></p>
-                           <p class="text-bold text-xs my-1 text-dark"> Discount: <i class="bi bi-currency-dollar"></i>  <span id="discount"></span></p>
+                           <p class="text-bold text-xs my-1 text-dark"> TOTAL: <span id="total"></span></p>
+                           <p class="text-bold text-xs my-2 text-dark"> PAYABLE:  <span id="payable"></span></p>
+                           <p class="text-bold text-xs my-1 text-dark"> VAT(5%):  <span id="vat"></span></p>
+                           <p class="text-bold text-xs my-1 text-dark"> Discount:  <span id="discount"></span></p>
                            <span class="text-xxs">Discount(%):</span>
-                           <input onkeydown="return false" value="0" min="0" type="number" step="0.25" onchange="discountChange()" class="form-control w-40 " id="discountP"/>
+                           <input value="0" min="0" type="number" step="0.25" onchange="discountChange()" class="form-control w-40 " id="discountP"/>
                            <p>
                               <button onclick="createInvoice()" class="btn  my-3 bg-gradient-primary w-40">Confirm</button>
                            </p>
@@ -109,8 +109,8 @@
                                 <div class="col-12 p-1">
                                     <input type="text" class="d-none" id="PId">
                                     <p class="text-lg">Name: <span id="PName"></span></p>
-                                    <p class="">Price: $<span id="PPrice"></span></p>
-                                    <p class="">Remaining Stock: <span id="PStock"></span></p>
+                                    <p class="">Price: <span id="PPrice"></span></p>
+                                    <p class="">Stock: <span id="PStock"></span></p>
                                     <label class="form-label mt-2">Product Qty *</label>
                                     <input type="number" value="0" class="form-control" id="PQty">
                                 </div>
@@ -140,10 +140,12 @@
 
         let invoiceItemList = []
 
-        function showInvoiceItem() {
-            let invoiceList = $('#invoiceList');
+        let soldItemList = []
 
-            invoiceList.empty();
+        function showInvoiceItem() {
+            let invoicePreviewList = $('#invoicePreviewList');
+
+            invoicePreviewList.empty();
 
             invoiceItemList.forEach(function (element, index) {
                 let row = `<tr class="text-xs">
@@ -153,7 +155,7 @@
                         <td><a data-index="${index}" class="btn remove text-xxs px-2 py-1  btn-sm m-0">Remove</a></td>
                      </tr>`
 
-                invoiceList.append(row)
+                invoicePreviewList.append(row)
             })
 
             calculateGrandTotal()
@@ -166,8 +168,7 @@
 
         }
 
-        function removeItem(index) {
-            let item = invoiceItemList[index]
+        function restock(item) {
             let prevStock = document.getElementById(`stock-${item.product_id}`).innerText
             document.getElementById(`stock-${item.product_id}`).innerText = Number(prevStock) + Number(item.qty)
 
@@ -176,6 +177,12 @@
 
                 addProductOnClick()
             }
+        }
+
+        function removeItem(index) {
+            let item = invoiceItemList[index]
+
+            restock(item)
 
             invoiceItemList.splice(index, 1)
 
@@ -215,7 +222,7 @@
             let name = document.getElementById('PName').innerText
             let price = document.getElementById('PPrice').innerText
             let qty = document.getElementById('PQty').value
-            let stock = document.getElementById('PStock').innerText
+            let stock = document.getElementById(`stock-${product_id}`).innerText
 
             let sale_price = (parseFloat(price) * parseFloat(qty)).toFixed(2)
 
@@ -233,7 +240,6 @@
                 price : price,
                 qty : qty,
                 sale_price : sale_price,
-                stock : stock,
             }
 
             invoiceItemList.push(item)
@@ -253,11 +259,11 @@
             showInvoiceItem()
         }
 
-        function addModal(id, name, price, stock) {
+        function addModal(id, name, price) {
             document.getElementById('PId').value = id
             document.getElementById('PName').innerText = name
             document.getElementById('PPrice').innerText = price
-            document.getElementById('PStock').innerText = stock
+            document.getElementById('PStock').innerText = document.getElementById(`stock-${id}`).innerText
 
             $('#create-modal').modal('show')
         }
@@ -316,7 +322,7 @@
                 let addButton = `<td id="productAdd-${element['id']}"><span class="text-danger">Out Of Stock</span></td>`
 
                 if (element['stock'] > 0) {
-                    addButton = `<td id="productAdd-${element['id']}"><button data-id="${element['id']}" data-name="${element['name']}" data-price="${element['price']}" data-stock="${element['stock']}" class="btn btn-outline-dark text-xxs px-2 py-1 addProduct btn-sm m-0">Add</button></td>`
+                    addButton = `<td id="productAdd-${element['id']}"><button data-id="${element['id']}" data-name="${element['name']}" data-price="${element['price']}" class="btn btn-outline-dark text-xxs px-2 py-1 addProduct btn-sm m-0">Add</button></td>`
                 }
 
                 let row = `
@@ -345,9 +351,8 @@
                 let id = $(this).data('id')
                 let name = $(this).data('name')
                 let price = $(this).data('price')
-                let stock = $(this).data('stock')
 
-                addModal(id, name, price, stock)
+                addModal(id, name, price)
             })
         }
 
@@ -358,11 +363,11 @@
             let payable = document.getElementById('payable').innerText
             let customer_id = document.getElementById('CId').innerText
 
-            if(customer_id.length === 0) {
+            if (customer_id.length === 0) {
                 return errorToast("Please Select A Customer.")
             }
 
-            if(invoiceItemList.length === 0) {
+            if (invoiceItemList.length === 0) {
                 return errorToast("At Least 1 Product Is Required.")
             }
 
@@ -376,18 +381,31 @@
             }
 
             showLoader()
-            let res=await axios.post("{{ route('invoice.create') }}", data)
+            let res = await axios.post("{{ route('invoice.create') }}", data)
             hideLoader()
 
-            if(res.data['status'] === 'success') {
-                // window.location.href='/invoicePage'
+            if (res.data['status'] === 'success') {
                 successToast(res.data['message'])
+
+                populateInvoiceModal(res.data['data'])
+
+                document.getElementById('CName').innerText = ""
+                document.getElementById('CContact').innerText = ""
+                document.getElementById('CId').innerText = ""
+
+                invoiceItemList = []
+
+                showInvoiceItem()
             }
-            else{
+            else {
                 errorToast(res.data['message'])
             }
         }
 
     </script>
+
+    @include('components.invoice.invoice-delete')
+
+    @include('components.invoice.invoice-details')
 
 @endsection

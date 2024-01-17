@@ -97,7 +97,7 @@
                         <div class="col-9 col-lg-8 col-md-8 col-sm-9">
                             <div>
                                 <h5 class="mb-0 text-capitalize font-weight-bold">
-                                    $ <span id="total"></span>
+                                    <span id="total"></span>
                                 </h5>
                                 <p class="mb-0 text-sm">Total Sale</p>
                             </div>
@@ -120,7 +120,7 @@
                         <div class="col-9 col-lg-8 col-md-8 col-sm-9">
                             <div>
                                 <h5 class="mb-0 text-capitalize font-weight-bold">
-                                    $ <span id="vat"></span>
+                                    <span id="vat"></span>
                                 </h5>
                                 <p class="mb-0 text-sm">Vat Collection</p>
                             </div>
@@ -143,7 +143,7 @@
                         <div class="col-9 col-lg-8 col-md-8 col-sm-9">
                             <div>
                                 <h5 class="mb-0 text-capitalize font-weight-bold">
-                                    $ <span id="payable"></span>
+                                    <span id="payable"></span>
                                 </h5>
                                 <p class="mb-0 text-sm">Total Collection</p>
                             </div>
@@ -165,5 +165,5 @@
 
 
 <script>
-    
+
 </script>

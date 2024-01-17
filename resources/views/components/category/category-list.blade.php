@@ -63,7 +63,7 @@
 
             new DataTable('#dataTable', {
                 order: [[0, 'desc']],
-                lengthMenu: [5,10,20,50]
+                lengthMenu: [10, 20, 50]
             })
 
             $('.update-btn').on('click', async function () {

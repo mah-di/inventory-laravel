@@ -53,7 +53,7 @@
         document.getElementById('productCategory').innerHTML = `<option value="">Select Category</option>`
 
         res.data['data'].forEach(function (element) {
-            let option=`<option value="${element['id']}">${element['name']}</option>`
+            let option = `<option value="${element['id']}">${element['name']}</option>`
 
             $("#productCategory").append(option)
         })

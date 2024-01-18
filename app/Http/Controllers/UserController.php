@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Helpers\JWTHelper;
 use App\Mail\OTPMail;
+use App\Models\Category;
+use App\Models\Customer;
+use App\Models\Invoice;
+use App\Models\Product;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -328,6 +332,34 @@ class UserController extends Controller
             return response()->json([
                 'status' => 'fail',
                 'message' => $exception->getMessage()
+            ]);
+        }
+    }
+
+    public function getSummary(Request $request)
+    {
+        try {
+            $userID = $request->header('id');
+
+            $data = [];
+
+            $data['categoryCount'] = Category::where('user_id', $userID)->count();
+            $data['productCount'] = Product::where('user_id', $userID)->count();
+            $data['customerCount'] = Customer::where('user_id', $userID)->count();
+            $data['invoiceCount'] = Invoice::where('user_id', $userID)->count();
+            $data['totalSale'] = Invoice::where('user_id', $userID)->sum('payable');
+            $data['vatCollected'] = Invoice::where('user_id', $userID)->sum('vat');
+            $data['totalRevenue'] = $data['totalSale'] - $data['vatCollected'];
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $data,
+            ]);
+
+        } catch (Exception $exception) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $exception->getMessage(),
             ]);
         }
     }

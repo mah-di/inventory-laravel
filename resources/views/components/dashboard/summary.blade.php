@@ -8,14 +8,14 @@
                         <div class="col-9 col-lg-8 col-md-8 col-sm-9">
                             <div>
                                 <h5 class="mb-0 text-capitalize font-weight-bold">
-                                    <span id="product"></span>
+                                    <span id="category"></span>
                                 </h5>
-                                <p class="mb-0 text-sm">Product</p>
+                                <p class="mb-0 text-sm">Category</p>
                             </div>
                         </div>
                         <div class="col-3 col-lg-4 col-md-4 col-sm-3 text-end">
                             <div class="icon icon-shape bg-gradient-primary shadow float-end border-radius-md">
-                                <img class="w-100 " src="{{asset('images/icon.svg')}}"/>
+                                <img class="w-100 " src="{{ asset('images/icon.svg') }}"/>
                             </div>
                         </div>
                     </div>
@@ -30,14 +30,14 @@
                         <div class="col-9 col-lg-8 col-md-8 col-sm-9">
                             <div>
                                 <h5 class="mb-0 text-capitalize font-weight-bold">
-                                    <span id="category"></span>
+                                    <span id="product"></span>
                                 </h5>
-                                <p class="mb-0 text-sm">Category</p>
+                                <p class="mb-0 text-sm">Product</p>
                             </div>
                         </div>
                         <div class="col-3 col-lg-4 col-md-4 col-sm-3 text-end">
                             <div class="icon icon-shape bg-gradient-primary shadow float-end border-radius-md">
-                                <img class="w-100 " src="{{asset('images/icon.svg')}}"/>
+                                <img class="w-100 " src="{{ asset('images/icon.svg') }}"/>
                             </div>
                         </div>
                     </div>
@@ -59,7 +59,7 @@
                         </div>
                         <div class="col-3 col-lg-4 col-md-4 col-sm-3 text-end">
                             <div class="icon icon-shape bg-gradient-primary shadow float-end border-radius-md">
-                                <img class="w-100 " src="{{asset('images/icon.svg')}}"/>
+                                <img class="w-100 " src="{{ asset('images/icon.svg') }}"/>
                             </div>
                         </div>
                     </div>
@@ -81,7 +81,7 @@
                         </div>
                         <div class="col-3 col-lg-4 col-md-4 col-sm-3 text-end">
                             <div class="icon icon-shape bg-gradient-primary shadow float-end border-radius-md">
-                                <img class="w-100 " src="{{asset('images/icon.svg')}}"/>
+                                <img class="w-100 " src="{{ asset('images/icon.svg') }}"/>
                             </div>
                         </div>
                     </div>
@@ -104,7 +104,7 @@
                         </div>
                         <div class="col-3 col-lg-4 col-md-4 col-sm-3 text-end">
                             <div class="icon icon-shape bg-gradient-primary shadow float-end border-radius-md">
-                                <img class="w-100 " src="{{asset('images/icon.svg')}}"/>
+                                <img class="w-100 " src="{{ asset('images/icon.svg') }}"/>
                             </div>
                         </div>
                     </div>
@@ -122,12 +122,12 @@
                                 <h5 class="mb-0 text-capitalize font-weight-bold">
                                     <span id="vat"></span>
                                 </h5>
-                                <p class="mb-0 text-sm">Vat Collection</p>
+                                <p class="mb-0 text-sm">Vat Collected</p>
                             </div>
                         </div>
                         <div class="col-3 col-lg-4 col-md-4 col-sm-3 text-end">
                             <div class="icon icon-shape bg-gradient-primary shadow float-end border-radius-md">
-                                <img class="w-100 " src="{{asset('images/icon.svg')}}"/>
+                                <img class="w-100 " src="{{ asset('images/icon.svg') }}"/>
                             </div>
                         </div>
                     </div>
@@ -143,14 +143,14 @@
                         <div class="col-9 col-lg-8 col-md-8 col-sm-9">
                             <div>
                                 <h5 class="mb-0 text-capitalize font-weight-bold">
-                                    <span id="payable"></span>
+                                    <span id="revenue"></span>
                                 </h5>
-                                <p class="mb-0 text-sm">Total Collection</p>
+                                <p class="mb-0 text-sm">Total Revenue</p>
                             </div>
                         </div>
                         <div class="col-3 col-lg-4 col-md-4 col-sm-3 text-end">
                             <div class="icon icon-shape bg-gradient-primary shadow float-end border-radius-md">
-                                <img class="w-100 " src="{{asset('images/icon.svg')}}"/>
+                                <img class="w-100 " src="{{ asset('images/icon.svg') }}"/>
                             </div>
                         </div>
                     </div>
@@ -165,5 +165,27 @@
 
 
 <script>
+
+    getSummary()
+
+    async function getSummary() {
+        showLoader()
+
+        res = await axios.get("{{ route('dashboard.summary') }}")
+
+        hideLoader()
+
+        if (res.data['status'] === 'success') {
+            document.querySelector('#category').innerText = res.data['data']['categoryCount']
+            document.querySelector('#product').innerText = res.data['data']['productCount']
+            document.querySelector('#customer').innerText = res.data['data']['customerCount']
+            document.querySelector('#invoice').innerText = res.data['data']['invoiceCount']
+            document.querySelector('#total').innerText = res.data['data']['totalSale']
+            document.querySelector('#vat').innerText = res.data['data']['vatCollected']
+            document.querySelector('#revenue').innerText = res.data['data']['totalRevenue']
+        } else {
+            errorToast(res.data['message'])
+        }
+    }
 
 </script>

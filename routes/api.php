@@ -35,6 +35,7 @@ Route::middleware('auth.jwt')->group(function () {
     Route::patch('/change-password', [UserController::class, 'changePassword'])->name('password.change');
     Route::patch('/user', [UserController::class, 'update'])->name('update.user');
     Route::get('/user-details', [UserController::class, 'getUser'])->name('user.details');
+    Route::get('/summary', [UserController::class, 'getSummary'])->name('dashboard.summary');
 
     Route::controller(CategoryController::class)
         ->prefix('/category')

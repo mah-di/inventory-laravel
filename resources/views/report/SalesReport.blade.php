@@ -36,20 +36,20 @@
     <tr>
         <th>Report</th>
         <th>Date</th>
-        <th>Total</th>
-        <th>Discount</th>
+        <th>Discount Given</th>
+        <th>Revenue</th>
         <th>Vat</th>
-        <th>Payable</th>
+        <th>Grand Total</th>
     </tr>
     </thead>
     <tbody>
     <tr>
         <td>Sales Report</td>
-        <td>{{$FormDate}} to {{$ToDate}}</td>
-        <td>{{$total}}</td>
-        <td>{{$discount}}</td>
-        <td>{{$vat}}</td>
-        <td>{{$payable}} </td>
+        <td>{{ $fromDate }} to {{ $toDate }}</td>
+        <td>{{ $discount }}</td>
+        <td>{{ $total }}</td>
+        <td>{{ $vat }}</td>
+        <td>{{ $payable }} </td>
     </tr>
     </tbody>
 </table>
@@ -59,9 +59,9 @@
 <table class="customers" >
     <thead>
     <tr>
+        <th>#ID</th>
         <th>Customer</th>
         <th>Phone</th>
-        <th>Email</th>
         <th>Total</th>
         <th>Discount</th>
         <th>Vat</th>
@@ -70,16 +70,16 @@
     </tr>
     </thead>
     <tbody>
-    @foreach ($list as $item)
+    @foreach ($invoices as $item)
         <tr>
-            <td>{{$item->customer->name}}</td>
-            <td>{{$item->customer->mobile}}</td>
-            <td>{{$item->customer->email}}</td>
-            <td>{{$item->total }}</td>
-            <td>{{$item->discount }}</td>
-            <td>{{$item->vat }}</td>
-            <td>{{$item->payable }}</td>
-            <td>{{$item->created_at }}</td>
+            <td>{{ $item->id }}</td>
+            <td>{{ $item->customer->name }}</td>
+            <td>{{ $item->customer->contact }}</td>
+            <td>{{ $item->total }}</td>
+            <td>{{ $item->discount }}</td>
+            <td>{{ $item->vat }}</td>
+            <td>{{ $item->payable }}</td>
+            <td>{{ $item->created_at }}</td>
         </tr>
     @endforeach
 

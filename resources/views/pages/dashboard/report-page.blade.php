@@ -7,10 +7,10 @@
                     <div class="card-body">
                         <h4>Sales Report</h4>
                         <label class="form-label mt-2">Date From</label>
-                        <input id="FormDate" type="date" class="form-control"/>
+                        <input id="fromDate" type="date" class="form-control"/>
                         <label class="form-label mt-2">Date To</label>
-                        <input id="ToDate" type="date" class="form-control"/>
-                        <button onclick="SalesReport()" class="btn mt-3 bg-gradient-primary">Download</button>
+                        <input id="toDate" type="date" class="form-control"/>
+                        <button onclick="salesReport()" class="btn mt-3 bg-gradient-primary">Download</button>
                     </div>
                 </div>
             </div>
@@ -21,14 +21,37 @@
 
 <script>
 
-    function SalesReport() {
-        let FormDate = document.getElementById('FormDate').value;
-        let ToDate = document.getElementById('ToDate').value;
-        if(FormDate.length === 0 || ToDate.length === 0){
-            errorToast("Date Range Required !")
-        }else{
-            window.open('/sales-report/'+FormDate+'/'+ToDate);
+    async function salesReport() {
+        let fromDate = document.getElementById('fromDate').value
+        let toDate = document.getElementById('toDate').value
+
+        if (fromDate.length === 0 || toDate.length === 0) {
+            return errorToast("Date Range Is Required.")
         }
+
+        showLoader()
+        let res = await axios.post("{{ route('salesReport') }}", {
+            fromDate : fromDate,
+            toDate : toDate
+        }, {
+            responseType : "blob"
+        })
+        hideLoader()
+
+        if (res.data['status'] === 'error') {
+            return errorToast(res.data['message'])
+        }
+
+        const blob = new Blob([res.data], {
+            type : "application/pdf"
+        })
+        const url = window.URL.createObjectURL(new Blob([res.data]))
+        let link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', `sales-report-${fromDate}-${toDate}.pdf`)
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
     }
 
 </script>

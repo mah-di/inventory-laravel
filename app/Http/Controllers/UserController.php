@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -358,7 +359,36 @@ class UserController extends Controller
 
         } catch (Exception $exception) {
             return response()->json([
-                'status' => 'success',
+                'status' => 'error',
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    public function generateSalesReport(Request $request)
+    {
+        try {
+            $userID = $request->header('id');
+
+            $fromDate = $request->input('fromDate');
+            $toDate = $request->input('toDate');
+
+            $data = [];
+
+            $data['fromDate'] = $fromDate;
+            $data['toDate'] = $toDate;
+            $data['invoices'] = Invoice::where('user_id', $userID)->whereDate('created_at', '>=', $fromDate)->whereDate('created_at', '<=', $toDate)->get();
+            $data['total'] = $data['invoices']->sum('total');
+            $data['discount'] = $data['invoices']->sum('discount');
+            $data['vat'] = $data['invoices']->sum('vat');
+            $data['payable'] = $data['invoices']->sum('payable');
+
+            $report = Pdf::loadView('report.SalesReport', $data);
+
+            return $report->download("sales-report.pdf");
+        } catch (Exception $exception) {
+            return response()->json([
+                'status' => 'error',
                 'message' => $exception->getMessage(),
             ]);
         }

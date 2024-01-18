@@ -112,7 +112,7 @@
                                     <p class="">Price: <span id="PPrice"></span></p>
                                     <p class="">Stock: <span id="PStock"></span></p>
                                     <label class="form-label mt-2">Product Qty *</label>
-                                    <input type="number" value="0" class="form-control" id="PQty">
+                                    <input type="number" value="1" class="form-control" id="PQty">
                                 </div>
                             </div>
                         </div>
@@ -253,7 +253,7 @@
                 document.getElementById(`productAdd-${product_id}`).innerHTML = `<span class="text-danger">Out Of Stock</span>`
             }
 
-            document.getElementById('PQty').value = 0
+            document.getElementById('PQty').value = 1
             $('#create-modal').modal('hide')
 
             showInvoiceItem()

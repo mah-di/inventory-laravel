@@ -10,7 +10,7 @@
                                 <h5 class="mb-0 text-capitalize font-weight-bold">
                                     <span id="category"></span>
                                 </h5>
-                                <p class="mb-0 text-sm">Category</p>
+                                <p class="mb-0 text-sm">Categories</p>
                             </div>
                         </div>
                         <div class="col-3 col-lg-4 col-md-4 col-sm-3 text-end">
@@ -32,7 +32,7 @@
                                 <h5 class="mb-0 text-capitalize font-weight-bold">
                                     <span id="product"></span>
                                 </h5>
-                                <p class="mb-0 text-sm">Product</p>
+                                <p class="mb-0 text-sm">Products</p>
                             </div>
                         </div>
                         <div class="col-3 col-lg-4 col-md-4 col-sm-3 text-end">
@@ -54,7 +54,7 @@
                                 <h5 class="mb-0 text-capitalize font-weight-bold">
                                     <span id="customer"></span>
                                 </h5>
-                                <p class="mb-0 text-sm">Customer</p>
+                                <p class="mb-0 text-sm">Customers</p>
                             </div>
                         </div>
                         <div class="col-3 col-lg-4 col-md-4 col-sm-3 text-end">
@@ -76,7 +76,7 @@
                                 <h5 class="mb-0 text-capitalize font-weight-bold">
                                     <span id="invoice"></span>
                                 </h5>
-                                <p class="mb-0 text-sm">Invoice</p>
+                                <p class="mb-0 text-sm">Sales Made</p>
                             </div>
                         </div>
                         <div class="col-3 col-lg-4 col-md-4 col-sm-3 text-end">
@@ -180,9 +180,9 @@
             document.querySelector('#product').innerText = res.data['data']['productCount']
             document.querySelector('#customer').innerText = res.data['data']['customerCount']
             document.querySelector('#invoice').innerText = res.data['data']['invoiceCount']
-            document.querySelector('#total').innerText = res.data['data']['totalSale']
-            document.querySelector('#vat').innerText = res.data['data']['vatCollected']
-            document.querySelector('#revenue').innerText = res.data['data']['totalRevenue']
+            document.querySelector('#total').innerText = parseFloat(res.data['data']['totalSale']).toFixed(2)
+            document.querySelector('#vat').innerText = parseFloat(res.data['data']['vatCollected']).toFixed(2)
+            document.querySelector('#revenue').innerText = parseFloat(res.data['data']['totalRevenue']).toFixed(2)
         } else {
             errorToast(res.data['message'])
         }

@@ -36,6 +36,7 @@ Route::middleware('auth.jwt')->group(function () {
     Route::patch('/user', [UserController::class, 'update'])->name('update.user');
     Route::get('/user-details', [UserController::class, 'getUser'])->name('user.details');
     Route::get('/summary', [UserController::class, 'getSummary'])->name('dashboard.summary');
+    Route::post('/sales-report', [UserController::class, 'generateSalesReport'])->name('salesReport');
 
     Route::controller(CategoryController::class)
         ->prefix('/category')

@@ -49,8 +49,8 @@
             return errorToast("Customer contact must be at least 11 digits.")
         }
 
-        if (contact.length > 14) {
-            return errorToast("Customer contact can't be more than 14 digits.")
+        if (contact.length > 15) {
+            return errorToast("Customer contact can't be more than 15 digits.")
         }
 
         showLoader()

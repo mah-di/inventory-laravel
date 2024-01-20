@@ -69,7 +69,7 @@ class CustomerController extends Controller
             $validData = $request->validate([
                 'name' => ['required', 'string', 'min:3'],
                 'email' => ['nullable', 'email', 'unique:customers'],
-                'contact' => ['required', 'numeric', 'gt:1000000000', 'lt:10000000000000', 'unique:customers'],
+                'contact' => ['required', 'digits_between:11,15', 'unique:customers'],
             ]);
 
             $result = Customer::create([
@@ -82,6 +82,7 @@ class CustomerController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Customer created successfully.',
+                'data' => $result
             ]);
 
         } catch (QueryException $exception) {
@@ -105,7 +106,7 @@ class CustomerController extends Controller
             $validData = $request->validate([
                 'name' => ['required', 'string', 'min:3'],
                 'email' => ['nullable', 'email', 'unique:customers,email,'.$id],
-                'contact' => ['required', 'numeric', 'gt:1000000000', 'lt:10000000000000', 'unique:customers,contact,'.$id],
+                'contact' => ['required', 'digits_between:11,15', 'unique:customers'],
             ]);
 
             Customer::where([

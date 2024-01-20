@@ -80,6 +80,7 @@
                     <table class="table table-sm w-100" id="customerTable">
                         <thead class="w-100">
                         <tr class="text-xs text-bold">
+                            <td  class="d-none">ID</td>
                             <td>Customer</td>
                             <td>Contact</td>
                             <td>Pick</td>
@@ -89,6 +90,8 @@
 
                         </tbody>
                     </table>
+                    <br>
+                    <button data-bs-toggle="modal" data-bs-target="#customer-create-modal" class="btn m-0 bg-gradient-primary w-100">Create Customer</button>
                 </div>
             </div>
 
@@ -280,6 +283,7 @@
             res.data['data'].forEach(function (element) {
                 let row = `
                     <tr class="text-xs">
+                        <td class="d-none">${element['id']}</td>
                         <td><i class="bi bi-person"></i> ${element['name']}</td>
                         <td><i class="bi bi-phone"></i> ${element['contact']}</td>
                         <td>
@@ -290,6 +294,43 @@
 
                 customerList.append(row)
             })
+
+            $('.addCustomer').on('click', async function () {
+                let name = $(this).data('name')
+                let contact = $(this).data('contact')
+                let id = $(this).data('id')
+
+                $("#CName").text(name)
+                $("#CContact").text(contact)
+                $("#CId").text(id)
+            })
+
+            new DataTable('#customerTable', {
+                order : [[0, 'desc']],
+                scrollCollapse : false,
+                info : false,
+                lengthChange : false
+            })
+        }
+
+        function prependCustomer(data) {
+            let customerList = $('#customerList')
+            let customerTable = $('#customerTable')
+
+            customerTable.DataTable().destroy()
+
+            let newRow = `
+                    <tr class="text-xs">
+                        <td class="d-none">${data['id']}</td>
+                        <td><i class="bi bi-person"></i> ${data['name']}</td>
+                        <td><i class="bi bi-phone"></i> ${data['contact']}</td>
+                        <td>
+                            <button data-name="${data['name']}" data-contact="${data['contact']}" data-id="${data['id']}" class="btn btn-outline-dark addCustomer text-xxs px-2 py-1 btn-sm m-0">Add</button>
+                        </td>
+                    </tr>
+                `
+
+            customerList.append(newRow)
 
             $('.addCustomer').on('click', async function () {
                 let name = $(this).data('name')
@@ -407,5 +448,7 @@
     @include('components.invoice.invoice-delete')
 
     @include('components.invoice.invoice-details')
+
+    @include('components.customer.customer-create')
 
 @endsection

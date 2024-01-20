@@ -1,4 +1,4 @@
-<div class="modal animated zoomIn" id="create-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal animated zoomIn" id="customer-create-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -21,7 +21,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button id="modal-close" class="btn bg-gradient-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>
+                    <button id="customer-modal-close" class="btn bg-gradient-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>
                     <button onclick="save()" id="save-btn" class="btn bg-gradient-success" >Save</button>
                 </div>
             </div>
@@ -44,8 +44,8 @@
             return errorToast("Customer contact must be at least 11 digits.")
         }
 
-        if (contact.length > 14) {
-            return errorToast("Customer contact can't be more than 14 digits.")
+        if (contact.length > 15) {
+            return errorToast("Customer contact can't be more than 15 digits.")
         }
 
         showLoader()
@@ -64,9 +64,13 @@
             document.querySelector('#customerName').value = null
             document.querySelector('#customerEmail').value = null
             document.querySelector('#customerContact').value = null
-            document.querySelector('#modal-close').click()
+            document.querySelector('#customer-modal-close').click()
 
-            await getList()
+            try {
+                await getList()
+            } catch (error) {
+                prependCustomer(res.data['data'])
+            }
         } else {
             errorToast(res.data['message'])
         }

@@ -4,10 +4,10 @@
         <div class="card px-5 py-5">
             <div class="row justify-content-between ">
                 <div class="align-items-center col">
-                    <h4>Role</h4>
+                    <h4>Employee</h4>
                 </div>
                 <div class="align-items-center col">
-                    <button data-bs-toggle="modal" data-bs-target="#role-create-modal" class="float-end btn m-0 bg-gradient-primary">Create</button>
+                    <button data-bs-toggle="modal" data-bs-target="#employee-create-modal" class="float-end btn m-0 bg-gradient-primary">Create</button>
                 </div>
             </div>
             <hr class="bg-dark "/>
@@ -82,7 +82,7 @@
 
             $('.assign-btn').on('click', async function () {
                 let employeeID = $(this).data('employee-id')
-                let roleIds = $(this).data('role-ids').toString().split(',')
+                let roleIds = $(this).data('role-ids').toString() ? $(this).data('role-ids').toString().split(',') : []
 
                 await fillAssignForm(employeeID, roleIds)
                 $('#assign-modal').modal('show')

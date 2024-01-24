@@ -15,9 +15,9 @@ class ProductController extends Controller
     public function all(Request $request)
     {
         try {
-            $userId = $request->header('id');
+            $ownerID = $request->header('ownerID');
 
-            $products = Product::where('user_id', '=', $userId)->get();
+            $products = Product::where('user_id', '=', $ownerID)->get();
 
             return response()->json([
                 'status' => 'success',
@@ -40,11 +40,11 @@ class ProductController extends Controller
     public function find(Request $request, string $id)
     {
         try {
-            $userId = $request->header('id');
+            $ownerID = $request->header('ownerID');
 
             $product = Product::where([
                     'id' => $id,
-                    'user_id' => $userId,
+                    'user_id' => $ownerID,
                 ])->first();
 
             return response()->json([
@@ -82,18 +82,18 @@ class ProductController extends Controller
             ]);
 
             unset($validData['img']);
-            $userID = $request->header('id');
+            $ownerID = $request->header('ownerID');
 
             if ($request->hasFile('img')) {
                 $img = $request->file('img');
-                $fileName = $userID . time() . '.' . $img->getClientOriginalExtension();
+                $fileName = $ownerID . time() . '.' . $img->getClientOriginalExtension();
                 $validData['img_url'] = "img/products/{$fileName}";
                 $img->move(public_path("img/products"), $fileName);
             }
 
             $result = Product::create([
                 ...$validData,
-                'user_id' => $userID,
+                'user_id' => $ownerID,
             ]);
 
             if ($result === null) throw new Exception("Uxpected error occured, couldn't create product.");
@@ -121,7 +121,7 @@ class ProductController extends Controller
     {
         try {
             $id = $request->input('id');
-            $userID = $request->header('id');
+            $ownerID = $request->header('ownerID');
 
             $validData = $request->validate([
                 'category_id' => ['required', 'exists:categories,id'],
@@ -144,14 +144,14 @@ class ProductController extends Controller
                     File::delete($validData['img_url']);
 
                 $img = $request->file('img');
-                $fileName = $userID . time() . '.' . $img->getClientOriginalExtension();
+                $fileName = $ownerID . time() . '.' . $img->getClientOriginalExtension();
                 $validData['img_url'] = "img/products/{$fileName}";
                 $img->move(public_path("img/products"), $fileName);
             }
 
             Product::where([
                     'id' => $id,
-                    'user_id' => $userID
+                    'user_id' => $ownerID
                 ])->update($validData);
 
             return response()->json([
@@ -177,7 +177,7 @@ class ProductController extends Controller
         try {
             Product::where([
                     'id' => $request->input('id'),
-                    'user_id' => $request->header('id')
+                    'user_id' => $request->header('ownerID')
                 ])->delete();
 
             if ($request->input('img_url') !== env("PRODUCT_IMG_URL"))

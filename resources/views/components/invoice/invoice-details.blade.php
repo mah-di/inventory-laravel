@@ -4,7 +4,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h1 class="modal-title fs-5" id="exampleModalLabel">Invoice</h1>
+                @if (Request::routeIs('sale.view') or array_intersect($roles, ['owner', 'manager']))
                 <button onclick="deleteInvoice()" id="DeleteInv" class="btn btn-danger">Delete Invoice</button>
+                @endif
             </div>
             <div id="invoice" class="modal-body p-3">
                 <div class="container-fluid">

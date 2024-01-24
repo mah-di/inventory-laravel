@@ -19,12 +19,14 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'owner_id',
         'firstName',
         'lastName',
         'email',
         'contact',
         'password',
         'otp',
+        'verified_at',
     ];
 
     protected $attributes = [
@@ -43,6 +45,7 @@ class User extends Authenticatable
         'password',
         'otp',
         'verified_at',
+        'pivot',
     ];
 
     /**
@@ -54,6 +57,16 @@ class User extends Authenticatable
         'verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_roles');
+    }
+
+    public function employees()
+    {
+        return $this->hasMany(User::class, 'owner_id');
+    }
 
     public function categories()
     {
@@ -78,6 +91,13 @@ class User extends Authenticatable
     public function invoiceProducts()
     {
         return $this->hasMany(InvoiceProduct::class);
+    }
+
+    public function hasRole(string $role)
+    {
+        $roles = $this->roles->pluck('slug')->all();
+
+        return in_array($role, $roles);
     }
 
 }

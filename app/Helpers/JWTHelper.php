@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Helpers;
+use App\Models\User;
 use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -8,8 +9,14 @@ use Firebase\JWT\Key;
 class JWTHelper
 {
 
-    public static function generateToken(string $email, int $userID, ?string $verifiedAt = null, string $type = 'auth.token'): string
+    public static function generateToken(User $user, string $type = 'auth.token'): string
     {
+        $userID = $user->id;
+        $ownerID = $user->owner_id ?? $userID;
+        $email = $user->email;
+        $verifiedAt = $user->verified_at;
+        $roles = $user->roles->pluck('slug')->all();
+
         $key = env('JWT_SECRET');
 
         $expTime = ($type === 'password.reset.token') ? time()+60*10 : time()+60*60*24*180;
@@ -20,6 +27,8 @@ class JWTHelper
             'exp' => $expTime,
             'email' => $email,
             'userID' => $userID,
+            'ownerID' => $ownerID,
+            'roles' => $roles,
             'verifiedAt' => $verifiedAt,
             'type' => $type
         ];

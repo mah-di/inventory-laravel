@@ -13,9 +13,9 @@ class CustomerController extends Controller
     public function all(Request $request)
     {
         try {
-            $userId = $request->header('id');
+            $ownerID = $request->header('ownerID');
 
-            $customers = Customer::where('user_id', '=', $userId)->get();
+            $customers = Customer::where('user_id', '=', $ownerID)->get();
 
             return response()->json([
                 'status' => 'success',
@@ -38,11 +38,11 @@ class CustomerController extends Controller
     public function find(Request $request, string $id)
     {
         try {
-            $userId = $request->header('id');
+            $ownerID = $request->header('ownerID');
 
             $customer = Customer::where([
                     'id' => $id,
-                    'user_id' => $userId,
+                    'user_id' => $ownerID,
                 ])->first();
 
             return response()->json([
@@ -74,7 +74,7 @@ class CustomerController extends Controller
 
             $result = Customer::create([
                 ...$validData,
-                'user_id' => $request->header('id')
+                'user_id' => $request->header('ownerID')
             ]);
 
             if ($result === null) throw new Exception("Uxpected error occured, couldn't create customer.");
@@ -106,12 +106,12 @@ class CustomerController extends Controller
             $validData = $request->validate([
                 'name' => ['required', 'string', 'min:3'],
                 'email' => ['nullable', 'email', 'unique:customers,email,'.$id],
-                'contact' => ['required', 'digits_between:11,15', 'unique:customers'],
+                'contact' => ['required', 'digits_between:11,15', 'unique:customers,contact,'.$id],
             ]);
 
             Customer::where([
                     'id' => $id,
-                    'user_id' => $request->header('id')
+                    'user_id' => $request->header('ownerID')
                 ])->update($validData);
 
             return response()->json([
@@ -137,7 +137,7 @@ class CustomerController extends Controller
         try {
             Customer::where([
                     'id' => $request->input('id'),
-                    'user_id' => $request->header('id')
+                    'user_id' => $request->header('ownerID')
                 ])->delete();
 
             return response()->json([

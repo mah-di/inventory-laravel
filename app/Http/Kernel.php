@@ -69,5 +69,7 @@ class Kernel extends HttpKernel
         'verified.email' => \App\Http\Middleware\VerifiedEmail::class,
         'guest' => \App\Http\Middleware\RedirectAuthenticatedUser::class,
         'web.redirect' => \App\Http\Middleware\ManageWebRedirect::class,
+        'roles' => \App\Http\Middleware\CheckUserRole::class,
+        'bind.roles' => \App\Http\Middleware\BindRolesToViews::class,
     ];
 }

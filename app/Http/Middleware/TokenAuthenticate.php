@@ -27,8 +27,10 @@ class TokenAuthenticate
             if ($payload == null) throw new Exception("Unauthorized Request.");
 
             $request->headers->set('id', $payload->userID);
+            $request->headers->set('ownerID', $payload->ownerID);
             $request->headers->set('email', $payload->email);
             $request->headers->set('verifiedAt', $payload->verifiedAt);
+            $request->headers->set('roles', json_encode($payload->roles));
 
             return $next($request);
 

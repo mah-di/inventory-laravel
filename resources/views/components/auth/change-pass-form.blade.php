@@ -62,4 +62,5 @@
             errorToast(res.data['message'])
         }
     }
+
 </script>

@@ -1,4 +1,5 @@
 @extends('layout.sidenav-layout')
+
 @section('content')
     <div class="container-fluid">
         <div class="row">

@@ -32,29 +32,36 @@
 
 <script>
 
-    getList()
+    showLoader()
+    getRoles().then(() => getList())
 
     async function getList() {
-        showLoader()
-        let res = await axios.get("{{ route('product.all') }}")
-        hideLoader()
-
+        let hasPermission = false
         let tableList = $("#tableList")
         let dataTable = $("#dataTable")
+
+        let res = await axios.get("{{ route('product.all') }}")
+        hideLoader()
 
         dataTable.DataTable().destroy()
         tableList.empty()
 
         res.data['data'].forEach(function (element) {
+            hasPermission = checkPermission(['owner', 'manager'])
+
             let row = `<tr>
                         <td><img class="w-15 h-auto" alt="" src="${element['img_url']}"></td>
                         <td>${element['name']}</td>
                         <td>${element['price']}</td>
                         <td>${element['stock']}</td>
                         <td>
-                            <button data-path="${element['img_url']}" data-id="${element['id']}" class="btn editBtn btn-sm btn-outline-info">Edit</button>
-                            <button data-path="${element['img_url']}" data-id="${element['id']}" class="btn deleteBtn btn-sm btn-outline-danger">Delete</button>
-                        </td>
+                            <button data-path="${element['img_url']}" data-id="${element['id']}" class="btn editBtn btn-sm btn-outline-info">Edit</button>` +
+                            (
+                                hasPermission
+                                    ? `&nbsp;&nbsp;<button data-path="${element['img_url']}" data-id="${element['id']}" class="btn deleteBtn btn-sm btn-outline-danger">Delete</button>`
+                                    : ``
+                            )
+                        + `</td>
                     </tr>`
 
             tableList.append(row)
@@ -69,15 +76,17 @@
             $("#update-modal").modal('show')
         })
 
-        $('.deleteBtn').on('click', function () {
-            let id = $(this).data('id')
-            let path = $(this).data('path')
+        if (hasPermission) {
+            $('.deleteBtn').on('click', function () {
+                let id = $(this).data('id')
+                let path = $(this).data('path')
 
-            $("#deleteID").val(id)
-            $("#deleteFilePath").val(path)
+                $("#deleteID").val(id)
+                $("#deleteFilePath").val(path)
 
-            $("#delete-modal").modal('show')
-        })
+                $("#delete-modal").modal('show')
+            })
+        }
 
         new DataTable('#dataTable', {
             order : [[0, 'desc']],

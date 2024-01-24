@@ -8,10 +8,12 @@ use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Models\Role;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
@@ -22,6 +24,8 @@ class UserController extends Controller
     {
         try
         {
+            DB::beginTransaction();
+
             $validData = $request->validate([
                 'firstName' => ['required', 'string', 'max:50'],
                 'lastName' => ['required', 'string', 'max:50'],
@@ -41,9 +45,40 @@ class UserController extends Controller
                 'otp' => $otp,
             ]);
 
+            $basicRoles = [
+                [
+                    'name' => 'Manager',
+                    'slug' => 'manager'
+                ],
+                [
+                    'name' => 'Editor',
+                    'slug' => 'editor'
+                ],
+                [
+                    'name' => 'Cashier',
+                    'slug' => 'cashier'
+                ],
+            ];
+
+            foreach($basicRoles as $role)
+                Role::create([
+                    'user_id' => $user->id,
+                    ...$role
+                ]);
+
+            $ownerRole = Role::where([
+                    'user_id' => null,
+                    'slug' => 'owner'
+                ])
+                ->first();
+
+            $user->roles()->attach($ownerRole);
+
+            DB::commit();
+
             Mail::to($user->email)->send(new OTPMail($otp));
 
-            $token = JWTHelper::generateToken($user->email, $user->id);
+            $token = JWTHelper::generateToken($user);
 
             return response()->json([
                 'status' => 'success',
@@ -67,26 +102,27 @@ class UserController extends Controller
     {
         try {
             $request->validate([
-                'otp' => ['required', 'min:4', 'max:4']
+                'otp' => ['required', 'digits:4']
             ]);
 
             $id = $request->header('id');
             $email = $request->header('email');
             $verifiedAt = now();
 
-            $result = User::where([
+            $user = User::where([
                     'id' => $id,
                     'email' => $email,
                     'otp' => $request->input('otp'),
-                ])
-                ->update([
+                ])->first();
+
+            if (!$user) throw new Exception("Invalid OTP Code.");
+
+            $user->update([
                     'otp' => 0,
                     'verified_at' => $verifiedAt,
                 ]);
 
-            if (!$result) throw new Exception("Invalid OTP Code");
-
-            $token = JWTHelper::generateToken($email, $id, $verifiedAt);
+            $token = JWTHelper::generateToken($user);
 
             return response()->json([
                     'status' => 'success',
@@ -152,7 +188,7 @@ class UserController extends Controller
                 ], 200);
             }
 
-            $token = JWTHelper::generateToken($user->email, $user->id, $user->verified_at);
+            $token = JWTHelper::generateToken($user);
 
             return response()->json([
                 'status' => 'success',
@@ -206,7 +242,7 @@ class UserController extends Controller
     {
         try {
             $request->validate([
-                'otp' => ['required', 'min:4', 'max:4']
+                'otp' => ['required', 'digits:4']
             ]);
 
             $user = User::where([
@@ -221,7 +257,7 @@ class UserController extends Controller
             $user->verified_at = $user->verified_at ?? now();
             $user->save();
 
-            $token = JWTHelper::generateToken($user->email, $user->id, $user->verified_at, 'password.reset.token');
+            $token = JWTHelper::generateToken($user, 'password.reset.token');
 
             return response()->json([
                     'status' => 'success',
@@ -347,6 +383,7 @@ class UserController extends Controller
             $data['categoryCount'] = Category::where('user_id', $userID)->count();
             $data['productCount'] = Product::where('user_id', $userID)->count();
             $data['customerCount'] = Customer::where('user_id', $userID)->count();
+            $data['employeeCount'] = User::where('owner_id', $userID)->count();
             $data['invoiceCount'] = Invoice::where('user_id', $userID)->count();
             $data['totalSale'] = Invoice::where('user_id', $userID)->sum('payable');
             $data['vatCollected'] = Invoice::where('user_id', $userID)->sum('vat');

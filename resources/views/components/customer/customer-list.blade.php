@@ -32,13 +32,13 @@
 
 <script>
 
-    getList()
+    showLoader()
+    getRoles().then(() => getList())
 
     async function getList() {
+        let hasPermission = false
         let dataTable = $('#dataTable')
         let tableList = $('#tableList')
-
-        showLoader()
 
         let res = await axios.get("{{ route('customer.all') }}")
 
@@ -48,6 +48,8 @@
         tableList.empty()
 
         if (res.data['status'] === 'success') {
+            hasPermission = checkPermission(['owner', 'manager'])
+
             res.data['data'].forEach(element => {
                 let row = `<tr>
                         <td class="d-none">${element['id']}</td>
@@ -55,9 +57,13 @@
                         <td>${element['email'] ?? "N/A"}</td>
                         <td>${element['contact']}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-info update-btn" data-id="${element['id']}">Update</button>
-                            <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${element['id']}">Delete</button>
-                        </td>
+                            <button class="btn btn-sm btn-outline-info update-btn" data-id="${element['id']}">Update</button>` +
+                            (
+                                hasPermission
+                                    ? `&nbsp;&nbsp;<button class="btn btn-sm btn-outline-danger delete-btn" data-id="${element['id']}">Delete</button>`
+                                    : ``
+                            )
+                        + `</td>
                     </tr>`
 
                 tableList.append(row)
@@ -74,11 +80,13 @@
                 $('#update-modal').modal('show')
             })
 
-            $('.delete-btn').on('click', async function () {
-                let id = $(this).data('id')
-                $('#deleteID').val(id)
-                $('#delete-modal').modal('show')
-            })
+            if (hasPermission){
+                $('.delete-btn').on('click', async function () {
+                    let id = $(this).data('id')
+                    $('#deleteID').val(id)
+                    $('#delete-modal').modal('show')
+                })
+            }
 
         } else {
             errorToast(res.data['message'])

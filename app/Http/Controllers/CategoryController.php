@@ -13,9 +13,9 @@ class CategoryController extends Controller
     public function all(Request $request)
     {
         try {
-            $userId = $request->header('id');
+            $ownerID = $request->header('ownerID');
 
-            $categories = Category::where('user_id', '=', $userId)->get();
+            $categories = Category::where('user_id', '=', $ownerID)->get();
 
             return response()->json([
                 'status' => 'success',
@@ -38,11 +38,11 @@ class CategoryController extends Controller
     public function find(Request $request, string $id)
     {
         try {
-            $userId = $request->header('id');
+            $ownerID = $request->header('ownerID');
 
             $category = Category::where([
                     'id' => $id,
-                    'user_id' => $userId,
+                    'user_id' => $ownerID,
                 ])->first();
 
             return response()->json([
@@ -72,7 +72,7 @@ class CategoryController extends Controller
 
             $result = Category::create([
                 ...$validData,
-                'user_id' => $request->header('id')
+                'user_id' => $request->header('ownerID')
             ]);
 
             if ($result === null) throw new Exception("Uxpected error occured, couldn't create category.");
@@ -104,7 +104,7 @@ class CategoryController extends Controller
 
             Category::where([
                     'id' => $request->input('id'),
-                    'user_id' => $request->header('id')
+                    'user_id' => $request->header('ownerID')
                 ])->update($validData);
 
             return response()->json([
@@ -130,7 +130,7 @@ class CategoryController extends Controller
         try {
             Category::where([
                     'id' => $request->input('id'),
-                    'user_id' => $request->header('id')
+                    'user_id' => $request->header('ownerID')
                 ])->delete();
 
             return response()->json([

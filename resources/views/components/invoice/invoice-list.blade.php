@@ -35,10 +35,14 @@
 
 <script>
 
-    getList()
+    showLoader()
+    getRoles().then(() => getList())
 
     async function getList() {
-        showLoader()
+        let hasPermission = false
+        let tableList = $("#tableList")
+        let tableData = $("#tableData")
+
         let res = await axios.get("{{ route('invoice.all') }}")
         hideLoader()
 
@@ -46,13 +50,12 @@
             return errorToast(res.data['message'])
         }
 
-        let tableList = $("#tableList")
-        let tableData = $("#tableData")
-
         tableData.DataTable().destroy()
         tableList.empty()
 
         res.data['data'].forEach(function (element) {
+            hasPermission = checkPermission(['owner', 'manager'])
+
             let row = `
                     <tr>
                         <td>${element['id']}</td>
@@ -63,8 +66,13 @@
                         <td>${element['vat']}</td>
                         <td>${element['payable']}</td>
                         <td>
-                            <button data-id="${element['id']}" class="viewBtn btn btn-outline-dark text-sm px-3 py-1 btn-sm m-0"><i class="fa text-sm fa-eye"></i></button>
-                            <button data-id="${element['id']}" class="deleteBtn btn btn-outline-dark text-sm px-3 py-1 btn-sm m-0"><i class="fa text-sm  fa-trash-alt"></i></button>
+                            <button data-id="${element['id']}" class="viewBtn btn btn-outline-dark text-sm px-3 py-1 btn-sm m-0"><i class="fa text-sm fa-eye"></i></button>` +
+                            (
+                                hasPermission
+                                    ? `&nbsp;&nbsp;<button data-id="${element['id']}" class="deleteBtn btn btn-outline-dark text-sm px-3 py-1 btn-sm m-0"><i class="fa text-sm  fa-trash-alt"></i></button>`
+                                    : ``
+                            )
+                        + `
                         </td>
                     </tr>
                 `
@@ -78,13 +86,15 @@
             await invoiceDetails(id)
         })
 
-        $('.deleteBtn').on('click',function () {
-            let id = $(this).data('id')
+        if (hasPermission) {
+            $('.deleteBtn').on('click',function () {
+                let id = $(this).data('id')
 
-            document.getElementById('deleteID').value = id
+                document.getElementById('deleteID').value = id
 
-            $("#delete-modal").modal('show')
-        })
+                $("#delete-modal").modal('show')
+            })
+        }
 
         new DataTable('#tableData', {
             order : [[0, 'desc']],

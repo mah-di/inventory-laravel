@@ -17,9 +17,9 @@ class InvoiceController extends Controller
     public function all(Request $request)
     {
         try {
-            $userId = $request->header('id');
+            $ownerID = $request->header('ownerID');
 
-            $invoices = Invoice::where('user_id', '=', $userId)->with('customer')->get();
+            $invoices = Invoice::where('user_id', '=', $ownerID)->with('customer')->get();
 
             return response()->json([
                 'status' => 'success',
@@ -42,11 +42,11 @@ class InvoiceController extends Controller
     public function find(Request $request, string $id)
     {
         try {
-            $userId = $request->header('id');
+            $ownerID = $request->header('ownerID');
 
             $invoice = Invoice::where([
                     'id' => $id,
-                    'user_id' => $userId,
+                    'user_id' => $ownerID,
                 ])
                 ->with([
                     'customer',
@@ -82,7 +82,7 @@ class InvoiceController extends Controller
         ]);
 
         InvoiceProduct::create([
-            'user_id' => $request->header('id'),
+            'user_id' => $request->header('ownerID'),
             ...$validData,
         ]);
 
@@ -107,7 +107,7 @@ class InvoiceController extends Controller
             ]);
 
             $invoice = Invoice::create([
-                'user_id' => $request->header('id'),
+                'user_id' => $request->header('ownerID'),
                 ...$validData,
             ]);
 
@@ -173,7 +173,7 @@ class InvoiceController extends Controller
 
             $invoice = Invoice::where([
                     'id' => $request->input('id'),
-                    'user_id' => $request->header('id')
+                    'user_id' => $request->header('ownerID')
                 ])
                 ->with([
                     'invoiceProducts' => fn ($q) => $q->with('product')
